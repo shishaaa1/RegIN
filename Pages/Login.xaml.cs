@@ -200,7 +200,7 @@ namespace RegIN.Pages
 
         private void OpenRegIn(object sender, MouseButtonEventArgs e)
         {
-            MainWindow.mainWindow.OpenPage(new RegIN());
+            MainWindow.mainWindow.OpenPage(new Regin());
         }
     }
 }

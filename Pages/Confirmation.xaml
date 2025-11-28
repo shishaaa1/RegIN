@@ -29,7 +29,7 @@
                     Margin="32"
                     VerticalAlignment="Top"
                     Width="100"
-                    Source="/RegIN;component/Images/ic_user.png"
+                    Source="/RegIN;component/Images/ic.png"
                     >
                     <Image.Clip>
                         <EllipseGeometry
