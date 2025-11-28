@@ -112,6 +112,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Classes\SendMail.cs" />
+    <Compile Include="Classes\User.cs" />
     <Compile Include="Classes\WorkingDB.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
