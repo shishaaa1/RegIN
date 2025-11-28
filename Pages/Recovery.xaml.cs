@@ -133,5 +133,10 @@ namespace RegIN.Pages
         {
             MainWindow.mainWindow.OpenPage(new Login());
         }
+        public void SetNotification(string MEssage, SolidColorBrush _Color)
+        {
+            LNameUser.Content = MEssage;
+            LNameUser.Foreground = _Color;
+        }
     }
 }
