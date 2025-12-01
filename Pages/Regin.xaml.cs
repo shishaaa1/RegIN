@@ -18,7 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Imaging = Aspose.Imaging;
-using static RegN.Classes.User;
+using static RegIN.Classes.User;
 
 namespace RegIN.Pages
 {
@@ -28,190 +28,175 @@ namespace RegIN.Pages
     public partial class Regin : Page
     {
         OpenFileDialog FileDialogImage = new OpenFileDialog();
-        bool BCorrectLogin = false;
-        bool BCorrectPassword = false;
-        bool BCorrectConfirmPassword = false;
-        bool BSetImages = false;
+        private bool IsLoginValid = false;
+        private bool IsPasswordValid = false;
+        private bool IsConfirmPasswordValid = false;
+        private bool IsImageSelected = false;
         public Regin()
         {
             InitializeComponent();
-            MainWindow.mainWindow.UserLogIn.HandleCorrectLogin += CorrectLogin;
-            MainWindow.mainWindow.UserLogIn.HandleIncorrectLogin += InCorrectLogin;
-            FileDialogImage.Filter = "PNG (*.png)|*.png|JPG(*.jpg)|*.jpg";
-            FileDialogImage.RestoreDirectory = true;
-            FileDialogImage.Title = "Choose a photo for your avatar";
-        }
-        private void CorrectLogin()
-        {
-            SetNotification("Login already in use", Brushes.Red);
-            BCorrectLogin = false;
-        }
-        private void InCorrectLogin() =>
-            SetNotification("", Brushes.Black);
-        private void SetLogin(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-                SetLogin();
-        }
-        private void SetLogin(object sender, System.Windows.RoutedEventArgs e) =>
-            SetLogin();
-        public void SetLogin()
-        {
-            Regex regex = new Regex(@"[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]{2,}");
-            BCorrectLogin = regex.IsMatch(TbLogin.Text);
-            BCorrectLogin = regex.IsMatch(TbLogin.Text);
-            if (regex.IsMatch(TbLogin.Text) == true)
+            MainWindow.mainWindow.UserLogIn.OnCorrectLogin += () =>
+            {
+                SetNotification("Этот email уже зарегистрирован", Brushes.Red);
+                IsLoginValid = false;
+            };
+
+            MainWindow.mainWindow.UserLogIn.OnIncorrectLogin += () =>
             {
                 SetNotification("", Brushes.Black);
-                MainWindow.mainWindow.UserLogIn.GetUserLogin(TbLogin.Text);
-            }
-            else
-                SetNotification("Invalid login", Brushes.Red);
-            OnRegin();
+                IsLoginValid = true;
+                TryGoToConfirmation();
+            };
+
+            FileDialogImage.Filter = "Изображения (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|Все файлы (*.*)|*.*";
+            FileDialogImage.Title = "Выберите аватар";
         }
-        public void SetNotification(string MEssage, SolidColorBrush _Color)
-        {
-            LNameUser.Content = MEssage;
-            LNameUser.Foreground = _Color;
-        }
-        private void SetPassword(object sender, System.Windows.RoutedEventArgs e) =>
-            SetPassword();
-        private void SetPassword(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-                SetPassword();
-        }
-        public void SetPassword()
-        {
-            Regex regex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*~_])(?=.{10,})[A-Za-z0-9!@#$%^&*~_]+$");
-            BCorrectPassword = regex.IsMatch(TbPassword.Password);
-            if (regex.IsMatch(TbPassword.Password) == true)
-            {
-                SetNotification("", Brushes.Black);
-                if (TbConfirmPassword.Password.Length > 0)
-                    ConfirmPassword(true);
-                OnRegin();
-            }
-            else
-                SetNotification("Invalid password", Brushes.Red);
-        }
-        private void ConfirmPassword(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-                ConfirmPassword();
-        }
-        private void ConfirmPassword(object sender, System.Windows.RoutedEventArgs e) =>
-            ConfirmPassword();
-        public void ConfirmPassword(bool Pass = false)
-        {
-            BCorrectConfirmPassword = TbConfirmPassword.Password==TbPassword.Password;
-            if (TbConfirmPassword.Password != TbPassword.Password)
-                SetNotification("Passwords do not match", Brushes.Red);
-            else
-            {
-                SetNotification("", Brushes.Red);
-                if (!Pass)
-                    SetPassword();
-            }
-        }
-        void OnRegin()
-        {
-            if (!BCorrectLogin)
-                return;
-            if (TbName.Text.Length == 0)
-                return;
-            if (!BCorrectPassword)
-                return;
-            if (!BCorrectConfirmPassword)
-                return;
-            MainWindow.mainWindow.UserLogIn.Login = TbLogin.Text;
-            MainWindow.mainWindow.UserLogIn.Password = TbPassword.Password;
-            MainWindow.mainWindow.UserLogIn.Name = TbName.Text;
-            if (BSetImages)
-                MainWindow.mainWindow.UserLogIn.Image = File.ReadAllBytes(Directory.GetCurrentDirectory() + @"\IUser.jpg");
-            MainWindow.mainWindow.UserLogIn.DateUpdate = DateTime.Now;
-            MainWindow.mainWindow.UserLogIn.DateCreate = DateTime.Now;
-            MainWindow.mainWindow.OpenPage(new Confirmation(Confirmation.TypeConfirmation.Regin));
-        }
+
+        // === Твои старые обработчики из XAML (KeyDown + LostFocus) ===
+        private void SetLogin(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) ValidateLogin(); }
+        private void SetLogin(object sender, RoutedEventArgs e) => ValidateLogin();
+
+        private void SetPassword(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) ValidatePassword(); }
+        private void SetPassword(object sender, RoutedEventArgs e) => ValidatePassword();
+
         private void SetName(object sender, TextCompositionEventArgs e)
         {
-            e.Handled = !(Char.IsLetter(e.Text, 0));
+            e.Handled = !char.IsLetter(e.Text[0]);
         }
-        private void SelectImage(object sender, MouseButtonEventArgs e)
+
+        // === Основные методы валидации ===
+        private void ValidateLogin()
         {
-            if (FileDialogImage.ShowDialog() == true)
+            var regex = new Regex(@"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+            if (string.IsNullOrWhiteSpace(TbLogin.Text) || !regex.IsMatch(TbLogin.Text))
             {
-                using (Imaging.Image image = Imaging.Image.Load(FileDialogImage.FileName))
-                {
-                    int NewWidth = 0;
-                    int NewHeight = 0;
+                SetNotification("Некорректный email", Brushes.Red);
+                IsLoginValid = false;
+                return;
+            }
 
-                    if (image.Width > image.Height)
-                    {
-                        NewWidth = (int)(image.Width * (256f / image.Height));
-                        NewHeight = 256;
-                    }
-                    else
-                    {
-                        NewWidth = 256;
-                        NewHeight = (int)(image.Height * (256f / image.Width));
-                    }
+            // Проверяем, есть ли уже такой пользователь
+            MainWindow.mainWindow.UserLogIn.GetUserByLogin(TbLogin.Text);
+        }
 
-                    image.Resize(NewWidth, NewHeight);
-                    image.Save("IUser.jpg");
-                }
+        private void ValidatePassword()
+        {
+            var regex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*~_])(?=.{10,})[A-Za-z0-9!@#$%^&*~_]+$");
 
-                using (Imaging.RasterImage rasterImage = (Imaging.RasterImage)Imaging.Image.Load("IUser.jpg"))
-                {
-                    if (!rasterImage.IsCached)
-                    {
-                        rasterImage.CacheData();
-                    }
-
-                    int X = 0;
-                    int Width = 256;
-                    int Y = 0;
-                    int Height = 256;
-
-                    if (rasterImage.Width > rasterImage.Height)
-                    {
-                        X = (int)((rasterImage.Width - 256f) / 2);
-                    }
-                    else
-                    {
-                        Y = (int)((rasterImage.Height - 256f) / 2);
-                    }
-
-                    Imaging.Rectangle rectangle = new Imaging.Rectangle(X, Y, Width, Height);
-                    rasterImage.Crop(rectangle);
-                    rasterImage.Save("IUser.jpg");
-                }
-
-                DoubleAnimation StartAnimation = new DoubleAnimation();
-                StartAnimation.From = 1;
-                StartAnimation.To = 0;
-                StartAnimation.Duration = TimeSpan.FromSeconds(0.6);
-                StartAnimation.Completed += delegate
-                {
-                    IUser.Source = new BitmapImage(new Uri(Directory.GetCurrentDirectory() + @"\IUser.jpg"));
-                    DoubleAnimation EndAnimation = new DoubleAnimation();
-                    EndAnimation.From = 0;
-                    EndAnimation.To = 1;
-                    EndAnimation.Duration = TimeSpan.FromSeconds(1.2);
-                    IUser.BeginAnimation(Image.OpacityProperty, EndAnimation);
-                };
-
-                IUser.BeginAnimation(Image.OpacityProperty, StartAnimation);
-                BSetImages = true;
+            if (string.IsNullOrEmpty(TbPassword.Password) || !regex.IsMatch(TbPassword.Password))
+            {
+                SetNotification("Пароль слабый: минимум 10 символов, большая и маленькая буква + символ", Brushes.Red);
+                IsPasswordValid = false;
             }
             else
             {
-                BSetImages = false;
+                IsPasswordValid = true;
+                if (TbConfirmPassword.Password.Length > 0)
+                    ValidateConfirmPassword();
+                else
+                    SetNotification("", Brushes.Black);
+            }
+
+            TryGoToConfirmation();
+        }
+
+        private void ValidateConfirmPassword()
+        {
+            if (TbPassword.Password != TbConfirmPassword.Password)
+            {
+                SetNotification("Пароли не совпадают", Brushes.Red);
+                IsConfirmPasswordValid = false;
+            }
+            else
+            {
+                SetNotification("Пароли совпадают", Brushes.Green);
+                IsConfirmPasswordValid = true;
+            }
+            TryGoToConfirmation();
+        }
+
+        // === Переход на подтверждение, если всё верно ===
+        private void TryGoToConfirmation()
+        {
+            if (IsLoginValid &&
+                IsPasswordValid &&
+                IsConfirmPasswordValid &&
+                !string.IsNullOrWhiteSpace(TbName.Text))
+            {
+                // Заполняем данные пользователя
+                var user = MainWindow.mainWindow.UserLogIn;
+                user.Login = TbLogin.Text.Trim();
+                user.Password = TbPassword.Password;
+                user.Name = TbName.Text.Trim();
+                user.DateUpdate = DateTime.Now;
+                user.DateCreate = DateTime.Now;
+
+                if (IsImageSelected && File.Exists("IUser.jpg"))
+                {
+                    user.Image = File.ReadAllBytes("IUser.jpg");
+                }
+
+                // Переходим на страницу подтверждения
+                MainWindow.mainWindow.OpenPage(new Confirmation(Confirmation.TypeConfirmation.Regin));
             }
         }
+
+        // === Уведомления через твой Label LNameUser ===
+        private void SetNotification(string text, SolidColorBrush color)
+        {
+            LNameUser.Content = text;
+            LNameUser.Foreground = color;
+        }
+
+        // === Загрузка и обработка аватара (MouseDown="SelectImage") ===
+        private void SelectImage(object sender, MouseButtonEventArgs e)
+        {
+            if (FileDialogImage.ShowDialog() != true) return;
+
+            try
+            {
+                using (var img = Imaging.Image.Load(FileDialogImage.FileName))
+                {
+                    int w = img.Width > img.Height ? (int)(img.Width * (256f / img.Height)) : 256;
+                    int h = img.Width > img.Height ? 256 : (int)(img.Height * (256f / img.Width));
+                    img.Resize(w, h);
+                    img.Save("IUser.jpg");
+                }
+
+                using (var raster = (Imaging.RasterImage)Imaging.Image.Load("IUser.jpg"))
+                {
+                    if (!raster.IsCached) raster.CacheData();
+                    int x = Math.Max(0, (raster.Width - 256) / 2);
+                    int y = Math.Max(0, (raster.Height - 256) / 2);
+                    var rect = new Imaging.Rectangle(x, y, 256, 256);
+                    raster.Crop(rect);
+                    raster.Save("IUser.jpg");
+                }
+
+                IUser.Source = new BitmapImage(new Uri(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "IUser.jpg")));
+
+                var anim = new DoubleAnimation(0.3, 1, TimeSpan.FromSeconds(0.6));
+                IUser.BeginAnimation(OpacityProperty, anim);
+
+                IsImageSelected = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка: " + ex.Message);
+            }
+        }
+
+        // === Возврат на логин ===
         private void OpenLogin(object sender, MouseButtonEventArgs e)
         {
             MainWindow.mainWindow.OpenPage(new Login());
+        }
+
+        // === Автовызов подтверждения пароля при вводе ===
+        private void TbConfirmPassword_LostFocus(object sender, RoutedEventArgs e) => ValidateConfirmPassword();
+        private void TbConfirmPassword_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) ValidateConfirmPassword();
         }
     }
 }

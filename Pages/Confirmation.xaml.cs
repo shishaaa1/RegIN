@@ -71,15 +71,26 @@ namespace RegIN.Pages
             SetCode();
         void SetCode()
         {
-            if (TbCode.Text == Code.ToString() && TbCode.IsEnabled == true)
+            if (TbCode.Text == Code.ToString() && TbCode.IsEnabled)
             {
                 TbCode.IsEnabled = false;
+
                 if (ThisTypeConfirmation == TypeConfirmation.Login)
-                    MessageBox.Show("Авторизация пользователя успешно подтверждена.");
+                {
+                    // Проверяем, есть ли PIN
+                    if (MainWindow.mainWindow.UserLogIn.PinHash == null)
+                    {
+                        MainWindow.mainWindow.OpenPage(new PinSetup());
+                    }
+                    else
+                    {
+                        MainWindow.mainWindow.OpenPage(new PinLogin(MainWindow.mainWindow.UserLogIn.Login));
+                    }
+                }
                 else
                 {
                     MainWindow.mainWindow.UserLogIn.SetUser();
-                    MessageBox.Show("Регистрация пользователя успешно подтверждена");
+                    MainWindow.mainWindow.OpenPage(new PinSetup()); // После регистрации тоже просим PIN
                 }
             }
         }

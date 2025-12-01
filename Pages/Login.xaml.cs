@@ -32,8 +32,8 @@ namespace RegIN.Pages
         public Login()
         {
             InitializeComponent();
-            MainWindow.mainWindow.UserLogIn.HandleCorrectLogin += CorrectLogin;
-            MainWindow.mainWindow.UserLogIn.HandleIncorrectLogin += InCorrectLogin;
+            MainWindow.mainWindow.UserLogIn.OnCorrectLogin+= CorrectLogin;
+            MainWindow.mainWindow.UserLogIn.OnIncorrectLogin += InCorrectLogin;
             Capture.HandlerCorrectCapture += CorrectCapture;
         }
         public void CorrectLogin()
@@ -106,7 +106,7 @@ namespace RegIN.Pages
         {
             if (e.Key == Key.Enter)
             {
-                MainWindow.mainWindow.UserLogIn.GetUserLogin(TbLogin.Text);
+                MainWindow.mainWindow.UserLogIn.GetUserByLogin(TbLogin.Text);
                 if (TbPassword.Password.Length > 0)
                     SetPassword();
             }
@@ -114,7 +114,7 @@ namespace RegIN.Pages
 
         private void SetLogin(object sender, RoutedEventArgs e)
         {
-            MainWindow.mainWindow.UserLogIn.GetUserLogin(TbLogin.Text);
+            MainWindow.mainWindow.UserLogIn.GetUserByLogin(TbLogin.Text);
             if (TbPassword.Password.Length > 0)
                 SetPassword();
         }

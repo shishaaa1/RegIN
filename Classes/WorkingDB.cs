@@ -1,43 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Classes/WorkingDB.cs
 using MySql.Data.MySqlClient;
 
-namespace RegIN.Classes
+public static class WorkingDB
 {
-    public class WorkingDB
+    private static readonly string ConnectionString = "server=localhost;port=3306;database=regin;user=root;password=;";
+
+    public static MySqlConnection OpenConnection()
     {
-        readonly static string connection = "server=localhost;port=3306;database=regin;user=root;";
-        public static MySqlConnection OpenConnection()
-        {
-            try {
-                MySqlConnection mySqlConnection = new MySqlConnection(connection);
-                mySqlConnection.Open();
-                return mySqlConnection;
-            }
-            catch(Exception exp)
-            {
-                Debug.WriteLine(exp.Message);
-                return null;
-            }
-        }
-        public static MySqlDataReader Query(string Sql, MySqlConnection mySqlConnection)
-        {
-            MySqlCommand mySqlCommand = new MySqlCommand(Sql,mySqlConnection);
-            return mySqlCommand.ExecuteReader();
-        }
-        public static void CloseConnection(MySqlConnection mySqlConnection)
-        {
-            mySqlConnection.Close();
-            MySqlConnection.ClearPool(mySqlConnection);
-        }
-        public static bool OpenConnection(MySqlConnection mySqlConnection)
-        {
-            return mySqlConnection != null && mySqlConnection.State == System.Data.ConnectionState.Open;
-        }
+        var conn = new MySqlConnection(ConnectionString);
+        try { conn.Open(); return conn; }
+        catch { return null; }
     }
-    
+
+    public static bool IsOpen(MySqlConnection conn) => conn?.State == System.Data.ConnectionState.Open;
+
+    public static MySqlDataReader Query(string sql, MySqlConnection conn, params (string, object)[] parameters)
+    {
+        var cmd = new MySqlCommand(sql, conn);
+        foreach (var p in parameters) cmd.Parameters.AddWithValue(p.Item1, p.Item2);
+        return cmd.ExecuteReader();
+    }
+
+    public static int ExecuteNonQuery(string sql, MySqlConnection conn, params (string, object)[] parameters)
+    {
+        var cmd = new MySqlCommand(sql, conn);
+        foreach (var p in parameters) cmd.Parameters.AddWithValue(p.Item1, p.Item2);
+        return cmd.ExecuteNonQuery();
+    }
+
+    public static void CloseConnection(MySqlConnection conn)
+    {
+        conn?.Close();
+        MySqlConnection.ClearPool(conn);
+    }
 }

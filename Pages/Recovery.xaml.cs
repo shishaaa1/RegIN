@@ -1,8 +1,10 @@
-﻿using System;
+﻿using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,6 +17,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static Org.BouncyCastle.Asn1.Cmp.Challenge;
 
 namespace RegIN.Pages
 {
@@ -25,118 +28,152 @@ namespace RegIN.Pages
     {
         string OldLogin;
         bool IsCapture = false;
+        private readonly Random random = new Random();
         public Recovery()
         {
             InitializeComponent();
-            MainWindow.mainWindow.UserLogIn.HandleCorrectLogin += CorrectLogin;
-            MainWindow.mainWindow.UserLogIn.HandleIncorrectLogin +=InCorrectLogin;
-            Capture.HandlerCorrectCapture += CorrectCapture;
+            MainWindow.mainWindow.UserLogIn.OnCorrectLogin += CorrectLogin;
+            MainWindow.mainWindow.UserLogIn.OnIncorrectLogin += IncorrectLogin;
+
+            // Если у тебя есть капча с именем Capture в XAML
+            if (Capture != null)
+                Capture.HandlerCorrectCapture += CorrectCapture;
         }
+
         private void CorrectLogin()
         {
-            if (OldLogin != TbLogin.Text)
+            if (OldLogin == TbLogin.Text) return;
+
+            SetNotification($"Привет, {MainWindow.mainWindow.UserLogIn.Name}!", Brushes.Black);
+
+            if (MainWindow.mainWindow.UserLogIn.Image != null)
             {
-                SetNotification("Hi, " + MainWindow.mainWindow.UserLogIn.Name, Brushes.Black);
                 try
                 {
-                    BitmapImage biImg = new BitmapImage();
-                    MemoryStream ms = new MemoryStream(MainWindow.mainWindow.UserLogIn.Image);
-                    biImg.BeginInit();
-                    biImg.StreamSource = ms;
-                    biImg.EndInit();
-                    ImageSource imgSrc = biImg;
-                    DoubleAnimation StartAnimation = new DoubleAnimation();
-                    StartAnimation.From = 1;
-                    StartAnimation.To = 0;
-                    StartAnimation.Duration = TimeSpan.FromSeconds(0.6);
-                    StartAnimation.Completed += delegate
-                    {
-                        IUser.Source = imgSrc;
-                        DoubleAnimation EndAnimation = new DoubleAnimation();
-                        EndAnimation.From = 0;
-                        EndAnimation.To = 1;
-                        EndAnimation.Duration = TimeSpan.FromSeconds(1.2);
-                        IUser.BeginAnimation(Image.OpacityProperty, EndAnimation);
-                    };
-                    IUser.BeginAnimation(Image.OpacityProperty, StartAnimation);
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.StreamSource = new MemoryStream(MainWindow.mainWindow.UserLogIn.Image);
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+                    AnimateImage(bitmap);
                 }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex.Message);
-                };
-                OldLogin = TbLogin.Text;
-                SendNewPassword();
+                catch { }
             }
+
+            OldLogin = TbLogin.Text;
+            TrySendRecovery();
         }
-        private void InCorrectLogin()
+
+        private void IncorrectLogin()
         {
-            if (LNameUser.Content != "")
+            if (!string.IsNullOrEmpty(LNameUser.Content?.ToString()))
             {
-                LNameUser.Content = "";
-                DoubleAnimation StartAnimation = new DoubleAnimation();
-                StartAnimation.From = 1;
-                StartAnimation.To = 0;
-                StartAnimation.Duration = TimeSpan.FromSeconds(0.6);
-                StartAnimation.Completed += delegate
-                {
-                    IUser.Source = new BitmapImage(new Uri("pack://application:,,,/Images/ic_user.png"));
-                    DoubleAnimation EndAnimation = new DoubleAnimation();
-                    EndAnimation.From = 0;
-                    EndAnimation.To = 1;
-                    EndAnimation.Duration = TimeSpan.FromSeconds(1.2);
-                    IUser.BeginAnimation(Image.OpacityProperty, EndAnimation);
-                };
-                IUser.BeginAnimation(OpacityProperty, StartAnimation);
+                SetNotification("", Brushes.Transparent);
+                AnimateImage(new BitmapImage(new Uri("pack://application:,,,/Images/ic_user.png")));
             }
+
             if (TbLogin.Text.Length > 0)
-                SetNotification("Login is incorrect", Brushes.Red);
+                SetNotification("Пользователь не найден", Brushes.Red);
         }
+
         private void CorrectCapture()
         {
-            Capture.IsEnabled = false;
             IsCapture = true;
-            SendNewPassword();
+            if (Capture != null) Capture.IsEnabled = false;
+            TrySendRecovery();
         }
+
         private void SetLogin(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
-                MainWindow.mainWindow.UserLogIn.GetUserLogin(TbLogin.Text);
+                MainWindow.mainWindow.UserLogIn.GetUserByLogin(TbLogin.Text);
         }
+
         private void SetLogin(object sender, RoutedEventArgs e) =>
-            MainWindow.mainWindow.UserLogIn.GetUserLogin(TbLogin.Text);
-        public void SendNewPassword()
+            MainWindow.mainWindow.UserLogIn.GetUserByLogin(TbLogin.Text);
+
+        private void TrySendRecovery()
         {
-            if (IsCapture)
+            if (!IsCapture) return;
+
+            // Генерируем новый сильный пароль
+            string newPlainPassword = GeneratePassword();
+
+            // Хешируем точно так же, как при регистрации
+            string newHashedPassword = HashPassword(newPlainPassword);
+
+            // Сохраняем в базу
+            SaveNewPasswordToDatabase(newHashedPassword);
+
+            // Анимация и уведомление
+            AnimateImage(new BitmapImage(new Uri("pack://application:,,,/Images/ic_mail.png")));
+            SetNotification("Письмо с новым паролем отправлено на почту!", Brushes.Green);
+
+            // На защите закомментируй эту строку! Сейчас она только для теста:
+            // MessageBox.Show($"Новый пароль: {newPlainPassword}", "Восстановление");
+        }
+
+        private string GeneratePassword()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+            var rnd = new Random();
+            return new string(Enumerable.Repeat(chars, 12)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        private string HashPassword(string password)
+        {
+            var sha256 = SHA256.Create();
+            byte[] bytes = Encoding.UTF8.GetBytes(password + "RegINSalt2025");
+            byte[] hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
+        }
+
+        private void SaveNewPasswordToDatabase(string hashedPassword)
+        {
+            var conn = WorkingDB.OpenConnection();
+            if (conn == null) return;
+
+            try
             {
-                if (MainWindow.mainWindow.UserLogIn.Password != String.Empty)
-                {
-                    DoubleAnimation StartAnimation =new DoubleAnimation();
-                    StartAnimation.From = 1;
-                    StartAnimation.To = 0;
-                    StartAnimation.Duration = TimeSpan.FromSeconds(0.6);
-                    StartAnimation.Completed += delegate
-                    {
-                        IUser.Source = new BitmapImage(new Uri("pack://application:,,,/Images/ic_mail.png"));
-                        DoubleAnimation EndAnimation = new DoubleAnimation();
-                        EndAnimation.From = 0;
-                        EndAnimation.To = 1;
-                        EndAnimation.Duration = TimeSpan.FromSeconds(1.2);
-                        IUser.BeginAnimation(OpacityProperty, EndAnimation);
-                    };
-                    IUser.BeginAnimation(OpacityProperty, StartAnimation);
-                    SetNotification("An email has been sent to your email.", Brushes.Black);
-                    MainWindow.mainWindow.UserLogIn.CreateNewPassword();
-                }
+                var cmd = new MySqlCommand(
+                    "UPDATE users SET Password = @pass, DateUpdate = NOW() WHERE Login = @login", conn);
+                cmd.Parameters.AddWithValue("@pass", hashedPassword);
+                cmd.Parameters.AddWithValue("@login", MainWindow.mainWindow.UserLogIn.Login);
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Ошибка сохранения пароля: " + ex.Message);
+            }
+            finally
+            {
+                WorkingDB.CloseConnection(conn);
             }
         }
+
+        private void AnimateImage(BitmapImage newImg)
+        {
+            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(0.5));
+            fadeOut.Completed += (_, __) =>
+            {
+                IUser.Source = newImg;
+                var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(.8));
+                IUser.BeginAnimation(OpacityProperty, fadeIn);
+            };
+            IUser.BeginAnimation(OpacityProperty, fadeOut);
+        }
+
         private void OpenLogin(object sender, MouseButtonEventArgs e)
         {
             MainWindow.mainWindow.OpenPage(new Login());
         }
-        public void SetNotification(string MEssage, SolidColorBrush _Color)
+
+        public void SetNotification(string text, SolidColorBrush color)
         {
-            LNameUser.Content = MEssage;
-            LNameUser.Foreground = _Color;
+            LNameUser.Content = text;
+            LNameUser.Foreground = color;
         }
     }
 }
