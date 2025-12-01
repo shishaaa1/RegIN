@@ -20,78 +20,105 @@ namespace RegIN.Elements
     /// </summary>
     public partial class ElementCapture : UserControl
     {
-        public CorrectCapture HandlerCorrectCapture;
         public delegate void CorrectCapture();
-        string StrCapture = "";
-        int ElementWidth = 280;
-        int ElementHeight = 50;
+        public event CorrectCapture HandlerCorrectCapture;
+
+        private string StrCapture = "";
+        private readonly Random random = new Random(); // Один общий Random!
+        private const int CaptchaLength = 5; // Длина капчи
         public ElementCapture()
         {
             InitializeComponent();
             CreateCapture();
         }
+
         public void CreateCapture()
         {
             InputCapture.Text = "";
             Capture.Children.Clear();
             StrCapture = "";
-            CreateBackground();
-            Background();
-        }
-        void CreateBackground()
-        {
-            Random ThisRandom = new Random();
-            for (int i = 0; i < 100; i++)
-            {
-                int back = ThisRandom.Next(0, 10);
-                Label LBackground = new Label()
-                {
-                    Content = back,
-                    FontSize = ThisRandom.Next(10,16),
-                    FontWeight= FontWeights.Bold,
-                    Foreground = new SolidColorBrush(Color.FromArgb(100,(byte)ThisRandom.Next(0,255),
-                    (byte)ThisRandom.Next(0,255),(byte)ThisRandom.Next(0,255))),
-                    Margin=new Thickness(ThisRandom.Next(0,ElementWidth-20),ThisRandom.Next(0,ElementHeight-20),0,0)
-                };
-                Capture.Children.Add(LBackground);
 
-            }
+            CreateNoiseBackground();
+            GenerateCaptchaText();
         }
-        void Background()
+
+        // Фон — шум (полупрозрачные цифры)
+        void CreateNoiseBackground()
         {
-            Random ThisRandom = new Random();
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 50; i++) // Меньше шума
             {
-                int back = ThisRandom.Next(0, 10);
-                Label LCode= new Label()
+                var label = new Label
                 {
-                    Content = back,
-                    FontSize = 30,
+                    Content = random.Next(0, 10),
+                    FontSize = random.Next(12, 20),
                     FontWeight = FontWeights.Bold,
-                    Foreground = new SolidColorBrush(Color.FromArgb(100, (byte)ThisRandom.Next(0, 255),
-                    (byte)ThisRandom.Next(0, 255), (byte)ThisRandom.Next(0, 255))),
-                    Margin = new Thickness(ElementWidth/2 - 60 + i*30,ThisRandom.Next(-10,10),0,0)
+                    Foreground = new SolidColorBrush(Color.FromArgb(50,
+                        (byte)random.Next(100, 255),
+                        (byte)random.Next(100, 255),
+                        (byte)random.Next(100, 255))),
+                    Margin = new Thickness(
+                        random.Next(0, 280),
+                        random.Next(0, 50),
+                        0, 0)
                 };
-                StrCapture += back.ToString();
-                Capture.Children.Add(LCode);
-
+                Capture.Children.Add(label);
             }
         }
+
+        // Основной текст капчи
+        void GenerateCaptchaText()
+        {
+            StrCapture = "";
+            int startX = 30;
+
+            for (int i = 0; i < CaptchaLength; i++)
+            {
+                int digit = random.Next(0, 10);
+                StrCapture += digit;
+
+                var label = new Label
+                {
+                    Content = digit,
+                    FontSize = 32 + random.Next(-5, 8),
+                    FontWeight = FontWeights.Bold,
+                    Foreground = new SolidColorBrush(Color.FromArgb(255,
+                        (byte)random.Next(0, 100),
+                        (byte)random.Next(0, 100),
+                        (byte)random.Next(150, 255))),
+                    Margin = new Thickness(startX + i * 40 + random.Next(-10, 10),
+                                          random.Next(-15, 15), 0, 0),
+                    RenderTransform = new RotateTransform(random.Next(-25, 25))
+                };
+                Capture.Children.Add(label);
+            }
+        }
+
         public bool OnCapture()
         {
             return StrCapture == InputCapture.Text;
         }
-        private void EnterCapture(object sender,KeyEventArgs e)
+
+        private void EnterCapture(object sender, KeyEventArgs e)
         {
-            if (InputCapture.Text.Length == 4)
+            if (InputCapture.Text.Length == CaptchaLength)
             {
                 if (!OnCapture())
+                {
                     CreateCapture();
-                else if(HandlerCorrectCapture!=null)
-                    HandlerCorrectCapture();
+                    InputCapture.Focus();
+                }
+                else
+                {
+                    HandlerCorrectCapture?.Invoke();
+                }
             }
+        }
 
-
+        // Дополнительно: обновление по клику (удобно)
+        private void Capture_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            CreateCapture();
+            InputCapture.Focus();
         }
     }
 

@@ -66,6 +66,7 @@ namespace RegIN.Pages
                 }
                 catch(Exception exp)
                 {
+
                     Debug.WriteLine(exp.Message);
                 };
                 OldLogin = TbLogin.Text;    

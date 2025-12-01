@@ -87,7 +87,7 @@
                     KeyDown="SetPassword"
                     LostFocus="SetPassword"
                     />
-                <Label Content="Enter password:"
+                <Label Content="Confirm password:"
                    Margin="10,320,10,0"
                    VerticalAlignment="Top"
                    />

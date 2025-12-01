@@ -36,7 +36,7 @@ namespace RegIN.Pages
         }
         public void SendMailCode()
         {
-            Code=new Random().Next(100000,999999);
+            Code = new Random().Next(100000, 999999);
             Classes.SendMail.SendMessage($"Login code: {Code}", MainWindow.mainWindow.UserLogIn.Login);
             Thread TSendMailCode = new Thread(TimerSendMailCode);
             TSendMailCode.Start();
@@ -46,7 +46,9 @@ namespace RegIN.Pages
             for (int i = 0; i < 60; i++)
             {
                 Dispatcher.Invoke(() =>
-                LTimer.Content = $"A second message can be send after{(60 - 1)} seconds");
+                {
+                    LTimer.Content = $"A second message can be sent after {(60 - i)} seconds";
+                });
                 Thread.Sleep(1000);
             }
             Dispatcher.Invoke(() =>

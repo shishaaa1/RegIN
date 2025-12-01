@@ -24,12 +24,12 @@
             Width="307">
             <Grid>
                 <Image
-                    HorizontalAlignment="Center"
+                    HorizontalAlignment="Left"
                     Height="100"
-                    Margin="32"
+                    Margin="100,34,0,0"
                     VerticalAlignment="Top"
                     Width="100"
-                    Source="/RegIN;component/Images/ic.png"
+                    Source="/RegIN;component/Images/ic_mail.png"
                     >
                     <Image.Clip>
                         <EllipseGeometry
@@ -38,7 +38,7 @@
                             Center="50,50"
                             />
                     </Image.Clip>
-                    
+
                 </Image>
                 <Label Content="Enter code:"
                        Margin="10,161,10,0"
