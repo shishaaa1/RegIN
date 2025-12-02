@@ -3,6 +3,7 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using System.Windows;
 
 namespace RegIN.Classes
 {
@@ -73,28 +74,34 @@ namespace RegIN.Classes
 
         public void SetUser()
         {
-            var conn = WorkingDB.OpenConnection();
-            if (conn == null) return;
+            try
+            {
+                var conn = WorkingDB.OpenConnection();
+                if (conn == null) return;
 
-            using (var cmd = new MySqlCommand(@"INSERT INTO users 
+                using (var cmd = new MySqlCommand(@"INSERT INTO users 
                 (Login, Password, Name, Image, DateUpdate, DateCreate) 
                 VALUES (@Login, @Password, @Name, @Image, @DateUpdate, @DateCreate)", conn))
-            {
-                cmd.Parameters.AddWithValue("@Login", Login);
-                cmd.Parameters.AddWithValue("@Password", Password);
-                cmd.Parameters.AddWithValue("@Name", Name);
-                cmd.Parameters.AddWithValue("@Image", Image ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@DateUpdate", DateTime.Now);
-                cmd.Parameters.AddWithValue("@DateCreate", DateTime.Now);
-                cmd.ExecuteNonQuery();
-            }
+                {
+                    cmd.Parameters.AddWithValue("@Login", Login);
+                    cmd.Parameters.AddWithValue("@Password", Password);
+                    cmd.Parameters.AddWithValue("@Name", Name);
+                    cmd.Parameters.AddWithValue("@Image", Image ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@DateUpdate", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@DateCreate", DateTime.Now);
+                    cmd.ExecuteNonQuery();
+                }
 
-            WorkingDB.CloseConnection(conn);
+                WorkingDB.CloseConnection(conn);
+            }
+            catch (Exception ex) {
+                MessageBox.Show($"Ошибка регистрации {ex}");
+            }
         }
 
         public void UpdatePin(string pin)
         {
-            PinHash = pin;  // Убрано хэширование
+            PinHash = pin;
             var conn = WorkingDB.OpenConnection();
             if (conn == null) return;
             var cmd = new MySqlCommand("UPDATE users SET PinHash = @pin WHERE Id = @id", conn);
