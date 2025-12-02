@@ -115,14 +115,14 @@ namespace RegIN.Pages
 
         private void TryGoToConfirmation()
         {
-            if (_alreadyWentToConfirmation) return; // ← ВАЖНО: только один раз!
+            if (_alreadyWentToConfirmation) return; 
 
             if (IsLoginValid &&
                 IsPasswordValid &&
                 IsConfirmPasswordValid &&
                 !string.IsNullOrWhiteSpace(TbName.Text))
             {
-                _alreadyWentToConfirmation = true; // блокируем повторный переход
+                _alreadyWentToConfirmation = true; 
 
                 var user = MainWindow.mainWindow.UserLogIn;
                 user.Login = TbLogin.Text.Trim();

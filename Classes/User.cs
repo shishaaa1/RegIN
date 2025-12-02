@@ -89,9 +89,6 @@ namespace RegIN.Classes
                     cmd.Parameters.AddWithValue("@Image", Image ?? (object)DBNull.Value);
                     cmd.ExecuteNonQuery();
                 }
-
-                // Успешно! Теперь можно очищать
-                Clear();
             }
             catch (MySqlException ex) when (ex.Number == 1062) // 1062 = Duplicate entry
             {
@@ -107,29 +104,10 @@ namespace RegIN.Classes
                 WorkingDB.CloseConnection(conn);
             }
         }
-
-        public void UpdatePin(string pin)
-        {
-            PinHash = pin;
-            var conn = WorkingDB.OpenConnection();
-            if (conn == null) return;
-            var cmd = new MySqlCommand("UPDATE users SET PinHash = @pin WHERE Id = @id", conn);
-            cmd.Parameters.AddWithValue("@pin", PinHash);
-            cmd.Parameters.AddWithValue("@id", Id);
-            cmd.ExecuteNonQuery();
-            WorkingDB.CloseConnection(conn);
-        }
-
         public bool VerifyPin(string pin)
         {
             if (string.IsNullOrEmpty(PinHash)) return false;
             return PinHash == pin; 
-        }
-        public void Clear()
-        {
-            Id = 0;
-            Login = Password = Name = PinHash = string.Empty;
-            Image = null;
         }
 
     }

@@ -1,4 +1,4 @@
-﻿PROJECT EXPORT - 12/02/2025 21:38:01
+﻿PROJECT EXPORT - 12/02/2025 21:50:53
 Project Path: C:\Users\dreamgonewithout\Desktop\MyFirstProject\RegIN
 Total Files: 21
 
@@ -901,10 +901,22 @@ namespace RegIN.Pages
         private void SendMailCode()
         {
             Code = new Random().Next(100000, 999999);
-            string recipient = MainWindow.mainWindow.UserLogIn.Login;
 
-            // ← Эта строка точно отправляет письмо (как было у тебя изначально)
-            Classes.SendMail.SendMessage($"Ваш код подтверждения: {Code}", recipient);
+            string recipient = MainWindow.mainWindow?.UserLogIn?.Login;
+
+            if (string.IsNullOrWhiteSpace(recipient))
+            {
+                MessageBox.Show("Ошибка: email не найден!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            bool result = Classes.SendMail.SendMessage($"Ваш код подтверждения: {Code}", recipient);
+
+            if (!result)
+            {
+                MessageBox.Show("Ошибка отправки письма. Проверь лог.", "SMTP", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
             LTimer.Content = "Повторная отправка через 60 секунд";
             BSendMessage.IsEnabled = false;
@@ -924,8 +936,10 @@ namespace RegIN.Pages
                 });
             })
             { IsBackground = true };
+
             timerThread.Start();
         }
+
 
         private void SendMail(object sender, RoutedEventArgs e) => SendMailCode();
 
@@ -1369,8 +1383,14 @@ namespace RegIN.Pages
         public Recovery()
         {
             InitializeComponent();
+            // Сначала удаляем старую подписку (если она была), чтобы не дублировать
+            MainWindow.mainWindow.UserLogIn.OnCorrectLogin -= CorrectLogin;
+            MainWindow.mainWindow.UserLogIn.OnIncorrectLogin -= IncorrectLogin;
+
+            // Теперь подписываемся
             MainWindow.mainWindow.UserLogIn.OnCorrectLogin += CorrectLogin;
             MainWindow.mainWindow.UserLogIn.OnIncorrectLogin += IncorrectLogin;
+
             if (Capture != null)
                 Capture.HandlerCorrectCapture += CorrectCapture;
         }

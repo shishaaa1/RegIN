@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,35 +32,54 @@ namespace RegIN.Pages
             InitializeComponent();
             _isRegistration = isRegistration;
 
-            // авто-подтверждение при 4 цифрах
-            PinBox.PasswordChanged += (s, e) =>
-            {
-                if (PinBox.Password.Length == 4)
-                    ConfirmPin_Click(null, null);
-            };
         }
 
         private void ConfirmPin_Click(object sender, RoutedEventArgs e)
         {
             if (PinBox.Password.Length != 4 || !PinBox.Password.All(char.IsDigit))
             {
-                MessageBox.Show("PIN должен состоять из 4 цифр");
+                MessageBox.Show("PIN должен содержать 4 цифры");
                 return;
             }
 
-            MainWindow.mainWindow.UserLogIn.UpdatePin(PinBox.Password);
+            var user = MainWindow.mainWindow.UserLogIn;
 
-            if (_isRegistration)
+            if (user == null || string.IsNullOrWhiteSpace(user.Login))
             {
-                MessageBox.Show("Регистрация завершена. PIN установлен.");
-                MainWindow.mainWindow.OpenPage(new Login());
+                MessageBox.Show("Ошибка: пользователь не найден");
+                return;
             }
-            else
+
+            using (var conn = WorkingDB.OpenConnection())
             {
-                MessageBox.Show("PIN успешно изменён.");
-                MainWindow.mainWindow.OpenPage(new Login());
+                try
+                {
+                    user.PinHash = PinBox.Password;
+
+                    var cmd = new MySqlCommand(@"
+                        INSERT INTO users (Login, Password, Name, Image, DateUpdate, DateCreate, PinHash)
+                        VALUES (@Login, @Password, @Name, @Image, NOW(), NOW(), @Pin)", conn);
+
+                    cmd.Parameters.AddWithValue("@Login", user.Login);
+                    cmd.Parameters.AddWithValue("@Password", user.Password);
+                    cmd.Parameters.AddWithValue("@Name", user.Name);
+                    cmd.Parameters.AddWithValue("@Image", user.Image ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Pin", user.PinHash);
+
+                    cmd.ExecuteNonQuery();
+                }
+                catch (MySqlException ex) when (ex.Number == 1062)
+                {
+                    MessageBox.Show("Пользователь с таким логином уже существует!");
+                    return;
+                }
             }
+
+            MessageBox.Show("Регистрация завершена!");
+            MainWindow.mainWindow.OpenPage(new Login());
         }
+
+
     }
 }
 

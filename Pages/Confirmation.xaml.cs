@@ -85,10 +85,16 @@ namespace RegIN.Pages
 
         private void SetCode(object sender, RoutedEventArgs e)
         {
+            // 1. Если мы уже в процессе обработки успешного кода — выходим.
+            if (_isProcessing) return;
+
             if (TbCode.Text.Length != 6) return;
 
             if (TbCode.Text == Code.ToString())
             {
+                // 2. Ставим флаг, что обработка началась
+                _isProcessing = true;
+
                 TbCode.IsEnabled = false;
                 BSendMessage.IsEnabled = false;
 
@@ -97,11 +103,9 @@ namespace RegIN.Pages
                     MessageBox.Show($"Добро пожаловать, {MainWindow.mainWindow.UserLogIn.Name}!");
                     MainWindow.mainWindow.OpenPage(new Login());
                 }
-                else // Regin
+                else
                 {
-                    MainWindow.mainWindow.UserLogIn.SetUser();
-                    MainWindow.mainWindow.UserLogIn.Clear();
-                    MessageBox.Show("Регистрация завершена успешно!");
+                    MessageBox.Show("Подтверждение успешно!");
                     MainWindow.mainWindow.OpenPage(new PinSetup(true));
                 }
             }
@@ -109,6 +113,9 @@ namespace RegIN.Pages
             {
                 MessageBox.Show("Неверный код", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 TbCode.Text = "";
+
+                _isProcessing = false;
+
                 TbCode.Focus();
             }
         }
