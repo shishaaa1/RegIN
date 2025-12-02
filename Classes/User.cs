@@ -94,35 +94,22 @@ namespace RegIN.Classes
 
         public void UpdatePin(string pin)
         {
-            PinHash = HashPin(pin);
-
+            PinHash = pin;  // Убрано хэширование
             var conn = WorkingDB.OpenConnection();
             if (conn == null) return;
-
-            using (var cmd = new MySqlCommand("UPDATE users SET PinHash = @pin WHERE Id = @id", conn))
-            {
-                cmd.Parameters.AddWithValue("@pin", PinHash);
-                cmd.Parameters.AddWithValue("@id", Id);
-                cmd.ExecuteNonQuery();
-            }
-
+            var cmd = new MySqlCommand("UPDATE users SET PinHash = @pin WHERE Id = @id", conn);
+            cmd.Parameters.AddWithValue("@pin", PinHash);
+            cmd.Parameters.AddWithValue("@id", Id);
+            cmd.ExecuteNonQuery();
             WorkingDB.CloseConnection(conn);
         }
 
         public bool VerifyPin(string pin)
         {
             if (string.IsNullOrEmpty(PinHash)) return false;
-            return PinHash == HashPin(pin);
+            return PinHash == pin; 
         }
 
-        private string HashPin(string pin)
-        {
-            using (var sha256 = SHA256.Create())
-            {
-                var bytes = Encoding.UTF8.GetBytes(pin + "RegINSalt2025");
-                var hash = sha256.ComputeHash(bytes);
-                return Convert.ToBase64String(hash);
-            }
-        }
+        
     }
 }

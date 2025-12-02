@@ -77,7 +77,6 @@ namespace RegIN.Pages
 
                 if (ThisTypeConfirmation == TypeConfirmation.Login)
                 {
-                    // Проверяем, есть ли PIN
                     if (MainWindow.mainWindow.UserLogIn.PinHash == null)
                     {
                         MainWindow.mainWindow.OpenPage(new PinSetup());
@@ -90,7 +89,7 @@ namespace RegIN.Pages
                 else
                 {
                     MainWindow.mainWindow.UserLogIn.SetUser();
-                    MainWindow.mainWindow.OpenPage(new PinSetup()); // После регистрации тоже просим PIN
+                    MainWindow.mainWindow.OpenPage(new PinSetup());
                 }
             }
         }

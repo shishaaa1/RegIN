@@ -52,7 +52,6 @@ namespace RegIN.Pages
             FileDialogImage.Title = "Выберите аватар";
         }
 
-        // === Твои старые обработчики из XAML (KeyDown + LostFocus) ===
         private void SetLogin(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) ValidateLogin(); }
         private void SetLogin(object sender, RoutedEventArgs e) => ValidateLogin();
 
@@ -64,7 +63,6 @@ namespace RegIN.Pages
             e.Handled = !char.IsLetter(e.Text[0]);
         }
 
-        // === Основные методы валидации ===
         private void ValidateLogin()
         {
             var regex = new Regex(@"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
@@ -75,7 +73,6 @@ namespace RegIN.Pages
                 return;
             }
 
-            // Проверяем, есть ли уже такой пользователь
             MainWindow.mainWindow.UserLogIn.GetUserByLogin(TbLogin.Text);
         }
 
@@ -115,7 +112,6 @@ namespace RegIN.Pages
             TryGoToConfirmation();
         }
 
-        // === Переход на подтверждение, если всё верно ===
         private void TryGoToConfirmation()
         {
             if (IsLoginValid &&
@@ -123,7 +119,6 @@ namespace RegIN.Pages
                 IsConfirmPasswordValid &&
                 !string.IsNullOrWhiteSpace(TbName.Text))
             {
-                // Заполняем данные пользователя
                 var user = MainWindow.mainWindow.UserLogIn;
                 user.Login = TbLogin.Text.Trim();
                 user.Password = TbPassword.Password;
@@ -136,19 +131,15 @@ namespace RegIN.Pages
                     user.Image = File.ReadAllBytes("IUser.jpg");
                 }
 
-                // Переходим на страницу подтверждения
                 MainWindow.mainWindow.OpenPage(new Confirmation(Confirmation.TypeConfirmation.Regin));
             }
         }
 
-        // === Уведомления через твой Label LNameUser ===
         private void SetNotification(string text, SolidColorBrush color)
         {
             LNameUser.Content = text;
             LNameUser.Foreground = color;
         }
-
-        // === Загрузка и обработка аватара (MouseDown="SelectImage") ===
         private void SelectImage(object sender, MouseButtonEventArgs e)
         {
             if (FileDialogImage.ShowDialog() != true) return;
@@ -186,13 +177,10 @@ namespace RegIN.Pages
             }
         }
 
-        // === Возврат на логин ===
         private void OpenLogin(object sender, MouseButtonEventArgs e)
         {
             MainWindow.mainWindow.OpenPage(new Login());
         }
-
-        // === Автовызов подтверждения пароля при вводе ===
         private void TbConfirmPassword_LostFocus(object sender, RoutedEventArgs e) => ValidateConfirmPassword();
         private void TbConfirmPassword_KeyDown(object sender, KeyEventArgs e)
         {

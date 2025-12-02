@@ -143,7 +143,7 @@ namespace RegIN.Pages
                     {
                         if (CountSetPassword > 0)
                         {
-                            SetNotification($"Passwird is incorrect,{CountSetPassword} attempts left", Brushes.Red);
+                            SetNotification($"Password is incorrect,{CountSetPassword} attempts left", Brushes.Red);
                             CountSetPassword--;
                         }
                         else
@@ -184,7 +184,7 @@ namespace RegIN.Pages
             }
             Dispatcher.Invoke(() =>
             {
-                SetNotification("Hi" + MainWindow.mainWindow.UserLogIn.Name, Brushes.Black);
+                SetNotification("Hi " + MainWindow.mainWindow.UserLogIn.Name, Brushes.Black);
                 TbLogin.IsEnabled = true;
                 TbPassword.IsEnabled = true;
                 Capture.IsEnabled = true;

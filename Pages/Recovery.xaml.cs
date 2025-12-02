@@ -29,13 +29,12 @@ namespace RegIN.Pages
         string OldLogin;
         bool IsCapture = false;
         private readonly Random random = new Random();
+        private string _generatedPassword;
         public Recovery()
         {
             InitializeComponent();
             MainWindow.mainWindow.UserLogIn.OnCorrectLogin += CorrectLogin;
             MainWindow.mainWindow.UserLogIn.OnIncorrectLogin += IncorrectLogin;
-
-            // Если у тебя есть капча с именем Capture в XAML
             if (Capture != null)
                 Capture.HandlerCorrectCapture += CorrectCapture;
         }
@@ -97,37 +96,40 @@ namespace RegIN.Pages
         {
             if (!IsCapture) return;
 
-            // Генерируем новый сильный пароль
-            string newPlainPassword = GeneratePassword();
+            // Генерируем пароль и хэшируем его
+            _generatedPassword = GeneratePassword();
+            string newHashedPassword = HashPassword(_generatedPassword);
 
-            // Хешируем точно так же, как при регистрации
-            string newHashedPassword = HashPassword(newPlainPassword);
-
-            // Сохраняем в базу
+            // Сохраняем хэш в базу
             SaveNewPasswordToDatabase(newHashedPassword);
 
-            // Анимация и уведомление
-            AnimateImage(new BitmapImage(new Uri("pack://application:,,,/Images/ic_mail.png")));
-            SetNotification("Письмо с новым паролем отправлено на почту!", Brushes.Green);
+            // Отправляем письмо с ОТКРЫТЫМ паролем
+            try
+            {
+                Classes.SendMail.SendMessage($"Ваш новый пароль: {_generatedPassword}\n" +
+                                           $"Рекомендуем сменить его после входа в систему.",
+                                           MainWindow.mainWindow.UserLogIn.Login);
 
-            // На защите закомментируй эту строку! Сейчас она только для теста:
-            // MessageBox.Show($"Новый пароль: {newPlainPassword}", "Восстановление");
+                AnimateImage(new BitmapImage(new Uri("pack://application:,,,/Images/ic_mail.png")));
+                SetNotification("Письмо с новым паролем отправлено на почту!", Brushes.Green);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка отправки письма: {ex.Message}");
+                SetNotification("Ошибка отправки письма. Попробуйте позже.", Brushes.Red);
+            }
         }
 
         private string GeneratePassword()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-            var rnd = new Random();
             return new string(Enumerable.Repeat(chars, 12)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
         private string HashPassword(string password)
         {
-            var sha256 = SHA256.Create();
-            byte[] bytes = Encoding.UTF8.GetBytes(password + "RegINSalt2025");
-            byte[] hash = sha256.ComputeHash(bytes);
-            return Convert.ToBase64String(hash);
+            return password;  
         }
 
         private void SaveNewPasswordToDatabase(string hashedPassword)
@@ -174,6 +176,22 @@ namespace RegIN.Pages
         {
             LNameUser.Content = text;
             LNameUser.Foreground = color;
+        }
+        public void ResendPassword()
+        {
+            if (string.IsNullOrEmpty(_generatedPassword))
+                return;
+
+            try
+            {
+                Classes.SendMail.SendMessage($"Ваш пароль (повторная отправка): {_generatedPassword}",
+                                           MainWindow.mainWindow.UserLogIn.Login);
+                SetNotification("Пароль отправлен повторно!", Brushes.Green);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка повторной отправки: {ex.Message}");
+            }
         }
     }
 }

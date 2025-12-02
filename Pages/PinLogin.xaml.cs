@@ -29,7 +29,7 @@ namespace RegIN.Pages
             MainWindow.mainWindow.UserLogIn.OnCorrectLogin += () =>
             {
                 if (MainWindow.mainWindow.UserLogIn.PinHash != null)
-                    this.Dispatcher.Invoke(() => { /* уже на странице */ });
+                    this.Dispatcher.Invoke(() => {  });
             };
         }
 
@@ -44,7 +44,7 @@ namespace RegIN.Pages
             if (MainWindow.mainWindow.UserLogIn.VerifyPin(PinBox.Password))
             {
                 MessageBox.Show($"Welcome, {MainWindow.mainWindow.UserLogIn.Name}!");
-                // Переход на главную страницу
+               
             }
             else
             {

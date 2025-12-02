@@ -24,8 +24,8 @@ namespace RegIN.Elements
         public event CorrectCapture HandlerCorrectCapture;
 
         private string StrCapture = "";
-        private readonly Random random = new Random(); // Один общий Random!
-        private const int CaptchaLength = 5; // Длина капчи
+        private readonly Random random = new Random(); 
+        private const int CaptchaLength = 4;
         public ElementCapture()
         {
             InitializeComponent();
@@ -41,11 +41,9 @@ namespace RegIN.Elements
             CreateNoiseBackground();
             GenerateCaptchaText();
         }
-
-        // Фон — шум (полупрозрачные цифры)
         void CreateNoiseBackground()
         {
-            for (int i = 0; i < 50; i++) // Меньше шума
+            for (int i = 0; i < 50; i++) 
             {
                 var label = new Label
                 {
@@ -65,7 +63,6 @@ namespace RegIN.Elements
             }
         }
 
-        // Основной текст капчи
         void GenerateCaptchaText()
         {
             StrCapture = "";
@@ -114,7 +111,6 @@ namespace RegIN.Elements
             }
         }
 
-        // Дополнительно: обновление по клику (удобно)
         private void Capture_MouseDown(object sender, MouseButtonEventArgs e)
         {
             CreateCapture();

@@ -1,0 +1,1891 @@
+﻿PROJECT EXPORT - 12/02/2025 16:04:16
+Project Path: C:\Users\student-a502.PERMAVIAT\Desktop\RegIN
+Total Files: 20
+
+================================================================================
+FILE: App.config
+================================================================================
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    <startup> 
+        <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.8" />
+    </startup>
+  <runtime>
+    <assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1">
+      <dependentAssembly>
+        <assemblyIdentity name="System.Runtime.CompilerServices.Unsafe" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-6.0.0.0" newVersion="6.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="System.Memory" publicKeyToken="cc7b13ffcd2ddd51" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-4.0.1.2" newVersion="4.0.1.2" />
+      </dependentAssembly>
+    </assemblyBinding>
+  </runtime>
+</configuration>
+
+
+================================================================================
+FILE: App.xaml.cs
+================================================================================
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+
+namespace RegIN
+{
+    /// <summary>
+    /// Логика взаимодействия для App.xaml
+    /// </summary>
+    public partial class App : Application
+    {
+    }
+}
+
+
+
+================================================================================
+FILE: MainWindow.xaml.cs
+================================================================================
+using RegIN.Classes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+namespace RegIN
+{
+    /// <summary>
+    /// Логика взаимодействия для MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        public static MainWindow mainWindow;
+        public User UserLogIn = new User();
+        public MainWindow()
+        {
+            InitializeComponent();
+            mainWindow = this;
+            OpenPage(new Pages.Login());
+        }
+        public void OpenPage(Page page)
+        {
+            DoubleAnimation StartAnimation = new DoubleAnimation();
+            StartAnimation.From = 1;
+            StartAnimation.To = 0;
+            StartAnimation.Duration = TimeSpan.FromSeconds(0.6);
+            StartAnimation.Completed += delegate
+            {
+                frame.Navigate(page);
+                DoubleAnimation EndAnimation = new DoubleAnimation();
+                EndAnimation.From = 0;
+                EndAnimation.To = 1;
+                EndAnimation.Duration = TimeSpan.FromSeconds(1.2);
+                frame.BeginAnimation(Frame.OpacityProperty, EndAnimation);
+            };
+            frame.BeginAnimation(Frame.OpacityProperty, StartAnimation);
+        }
+    }
+}
+
+
+
+================================================================================
+FILE: packages.config
+================================================================================
+<?xml version="1.0" encoding="utf-8"?>
+<packages>
+  <package id="Aspose.Imaging" version="25.11.0" targetFramework="net48" />
+  <package id="BouncyCastle.Cryptography" version="2.6.2" targetFramework="net48" />
+  <package id="Google.Protobuf" version="3.32.0" targetFramework="net48" />
+  <package id="K4os.Compression.LZ4" version="1.3.8" targetFramework="net48" />
+  <package id="K4os.Compression.LZ4.Streams" version="1.3.8" targetFramework="net48" />
+  <package id="K4os.Hash.xxHash" version="1.0.8" targetFramework="net48" />
+  <package id="MaterialDesignColors" version="5.3.0" targetFramework="net48" />
+  <package id="MaterialDesignThemes" version="5.3.0" targetFramework="net48" />
+  <package id="Microsoft.Bcl.AsyncInterfaces" version="5.0.0" targetFramework="net48" />
+  <package id="Microsoft.Xaml.Behaviors.Wpf" version="1.1.77" targetFramework="net48" />
+  <package id="MySql.Data" version="9.5.0" targetFramework="net48" />
+  <package id="System.Buffers" version="4.5.1" targetFramework="net48" />
+  <package id="System.Configuration.ConfigurationManager" version="8.0.0" targetFramework="net48" />
+  <package id="System.IO.Pipelines" version="5.0.2" targetFramework="net48" />
+  <package id="System.Memory" version="4.5.5" targetFramework="net48" />
+  <package id="System.Numerics.Vectors" version="4.5.0" targetFramework="net48" />
+  <package id="System.Runtime.CompilerServices.Unsafe" version="6.0.0" targetFramework="net48" />
+  <package id="System.Threading.Tasks.Extensions" version="4.5.4" targetFramework="net48" />
+  <package id="ZstdSharp.Port" version="0.8.6" targetFramework="net48" />
+</packages>
+
+
+================================================================================
+FILE: RegIN.csproj
+================================================================================
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{33BB0742-1932-4B6F-AA0D-29D82411EE79}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>RegIN</RootNamespace>
+    <AssemblyName>RegIN</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Aspose.Imaging, Version=25.11.0.0, Culture=neutral, PublicKeyToken=716fcc553a201e56, processorArchitecture=MSIL">
+      <HintPath>packages\Aspose.Imaging.25.11.0\lib\net40\Aspose.Imaging.dll</HintPath>
+    </Reference>
+    <Reference Include="BouncyCastle.Cryptography, Version=2.0.0.0, Culture=neutral, PublicKeyToken=072edcf4a5328938, processorArchitecture=MSIL">
+      <HintPath>packages\BouncyCastle.Cryptography.2.6.2\lib\net461\BouncyCastle.Cryptography.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Protobuf, Version=3.32.0.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
+      <HintPath>packages\Google.Protobuf.3.32.0\lib\net45\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Compression.LZ4, Version=1.3.8.0, Culture=neutral, PublicKeyToken=2186fa9121ef231d, processorArchitecture=MSIL">
+      <HintPath>packages\K4os.Compression.LZ4.1.3.8\lib\net462\K4os.Compression.LZ4.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Compression.LZ4.Streams, Version=1.3.8.0, Culture=neutral, PublicKeyToken=2186fa9121ef231d, processorArchitecture=MSIL">
+      <HintPath>packages\K4os.Compression.LZ4.Streams.1.3.8\lib\net462\K4os.Compression.LZ4.Streams.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Hash.xxHash, Version=1.0.8.0, Culture=neutral, PublicKeyToken=32cd54395057cec3, processorArchitecture=MSIL">
+      <HintPath>packages\K4os.Hash.xxHash.1.0.8\lib\net462\K4os.Hash.xxHash.dll</HintPath>
+    </Reference>
+    <Reference Include="MaterialDesignColors, Version=5.3.0.0, Culture=neutral, PublicKeyToken=df2a72020bd7962a, processorArchitecture=MSIL">
+      <HintPath>packages\MaterialDesignColors.5.3.0\lib\net462\MaterialDesignColors.dll</HintPath>
+    </Reference>
+    <Reference Include="MaterialDesignThemes.Wpf, Version=5.3.0.0, Culture=neutral, PublicKeyToken=df2a72020bd7962a, processorArchitecture=MSIL">
+      <HintPath>packages\MaterialDesignThemes.5.3.0\lib\net462\MaterialDesignThemes.Wpf.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=5.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.5.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xaml.Behaviors, Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Xaml.Behaviors.Wpf.1.1.77\lib\net462\Microsoft.Xaml.Behaviors.dll</HintPath>
+    </Reference>
+    <Reference Include="MySql.Data, Version=9.5.0.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <HintPath>packages\MySql.Data.9.5.0\lib\net48\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.ConfigurationManager, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Configuration.ConfigurationManager.8.0.0\lib\net462\System.Configuration.ConfigurationManager.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.IO.Pipelines, Version=5.0.0.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.IO.Pipelines.5.0.2\lib\net461\System.IO.Pipelines.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Management" />
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="ZstdSharp, Version=0.8.6.0, Culture=neutral, PublicKeyToken=8d151af33a4ad5cf, processorArchitecture=MSIL">
+      <HintPath>packages\ZstdSharp.Port.0.8.6\lib\net462\ZstdSharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Page Include="Elements\ElementCapture.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Classes\SendMail.cs" />
+    <Compile Include="Classes\User.cs" />
+    <Compile Include="Classes\WorkingDB.cs" />
+    <Compile Include="Elements\ElementCapture.xaml.cs">
+      <DependentUpon>ElementCapture.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="Pages\Confirmation.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Login.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\PinLogin.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\PinSetup.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Recovery.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Regin.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Pages\Confirmation.xaml.cs">
+      <DependentUpon>Confirmation.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Login.xaml.cs">
+      <DependentUpon>Login.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PinLogin.xaml.cs">
+      <DependentUpon>PinLogin.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PinSetup.xaml.cs">
+      <DependentUpon>PinSetup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Recovery.xaml.cs">
+      <DependentUpon>Recovery.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Regin.xaml.cs">
+      <DependentUpon>Regin.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Resource Include="Resources\Noto\NotoSans-Bold.ttf" />
+    <Resource Include="Resources\Noto\NotoSans-BoldItalic.ttf" />
+    <Resource Include="Resources\Noto\NotoSans-Italic.ttf" />
+    <Resource Include="Resources\Noto\NotoSans-Regular.ttf" />
+    <Resource Include="Resources\Roboto\Roboto-Black.ttf" />
+    <Resource Include="Resources\Roboto\Roboto-BlackItalic.ttf" />
+    <Resource Include="Resources\Roboto\Roboto-Bold.ttf" />
+    <Resource Include="Resources\Roboto\Roboto-BoldItalic.ttf" />
+    <Resource Include="Resources\Roboto\Roboto-Italic.ttf" />
+    <Resource Include="Resources\Roboto\Roboto-Light.ttf" />
+    <Resource Include="Resources\Roboto\Roboto-LightItalic.ttf" />
+    <Resource Include="Resources\Roboto\Roboto-Medium.ttf" />
+    <Resource Include="Resources\Roboto\Roboto-MediumItalic.ttf" />
+    <Resource Include="Resources\Roboto\Roboto-Regular.ttf" />
+    <Resource Include="Resources\Roboto\Roboto-Thin.ttf" />
+    <Resource Include="Resources\Roboto\Roboto-ThinItalic.ttf" />
+    <Resource Include="Resources\Roboto\RobotoCondensed-Bold.ttf" />
+    <Resource Include="Resources\Roboto\RobotoCondensed-BoldItalic.ttf" />
+    <Resource Include="Resources\Roboto\RobotoCondensed-Italic.ttf" />
+    <Resource Include="Resources\Roboto\RobotoCondensed-Light.ttf" />
+    <Resource Include="Resources\Roboto\RobotoCondensed-LightItalic.ttf" />
+    <Resource Include="Resources\Roboto\RobotoCondensed-Regular.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\ic_user.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\ic_mail.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="packages\MaterialDesignThemes.5.3.0\build\MaterialDesignThemes.targets" Condition="Exists('packages\MaterialDesignThemes.5.3.0\build\MaterialDesignThemes.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\MaterialDesignThemes.5.3.0\build\MaterialDesignThemes.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\MaterialDesignThemes.5.3.0\build\MaterialDesignThemes.targets'))" />
+  </Target>
+</Project>
+
+
+================================================================================
+FILE: RegIN.sln
+================================================================================
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36518.9 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RegIN", "RegIN.csproj", "{33BB0742-1932-4B6F-AA0D-29D82411EE79}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{33BB0742-1932-4B6F-AA0D-29D82411EE79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33BB0742-1932-4B6F-AA0D-29D82411EE79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33BB0742-1932-4B6F-AA0D-29D82411EE79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33BB0742-1932-4B6F-AA0D-29D82411EE79}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2F82F101-E9D5-4F48-B138-A5DE8D4E241B}
+	EndGlobalSection
+EndGlobal
+
+
+
+================================================================================
+FILE: Classes\SendMail.cs
+================================================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Mail;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace RegIN.Classes
+{
+    public class SendMail
+    {
+        public static void SendMessage(string Message, string To)
+        {
+            var smtpClient = new SmtpClient("smtp.yandex.ru")
+            {
+                Port = 587,
+                Credentials = new NetworkCredential("gaschevdanil@yandex.ru", "fodhwxmjrpxnwakx"),
+                EnableSsl = true,
+            };
+            
+            smtpClient.Send("gaschevdanil@yandex.ru", To, "Проект RegIn", Message);
+        }
+    }
+}
+
+
+
+================================================================================
+FILE: Classes\User.cs
+================================================================================
+// Classes/User.cs
+using MySql.Data.MySqlClient;
+using System;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace RegIN.Classes
+{
+    public class User
+    {
+        public int Id { get; set; }
+        public string Login { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public byte[] Image { get; set; }  // Не nullable — будем проверять на null вручную
+        public DateTime DateUpdate { get; set; }
+        public DateTime DateCreate { get; set; }
+        public string PinHash { get; set; }  // Может быть null
+
+        public delegate void LoginHandler();
+        public event LoginHandler OnCorrectLogin;
+        public event LoginHandler OnIncorrectLogin;
+
+        public void GetUserByLogin(string login)
+        {
+            Id = -1;
+            Login = Password = Name = string.Empty;
+            Image = null;
+            PinHash = null;
+
+            var conn = WorkingDB.OpenConnection();
+            if (conn == null || conn.State != System.Data.ConnectionState.Open)
+            {
+                OnIncorrectLogin?.Invoke();
+                return;
+            }
+
+            using (var cmd = new MySqlCommand("SELECT * FROM users WHERE Login = @login LIMIT 1", conn))
+            {
+                cmd.Parameters.AddWithValue("@login", login);
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        Id = reader.GetInt32("Id");
+                        Login = reader.GetString("Login");
+                        Password = reader.GetString("Password");
+                        Name = reader.GetString("Name");
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("Image")))
+                        {
+                            var imageBytes = reader["Image"] as byte[];
+                            if (imageBytes != null) Image = imageBytes;
+                        }
+
+                        DateUpdate = reader.GetDateTime("DateUpdate");
+                        DateCreate = reader.GetDateTime("DateCreate");
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("PinHash")))
+                            PinHash = reader.GetString("PinHash");
+
+                        OnCorrectLogin?.Invoke();
+                    }
+                    else
+                    {
+                        OnIncorrectLogin?.Invoke();
+                    }
+                }
+            }
+
+            WorkingDB.CloseConnection(conn);
+        }
+
+        public void SetUser()
+        {
+            var conn = WorkingDB.OpenConnection();
+            if (conn == null) return;
+
+            using (var cmd = new MySqlCommand(@"INSERT INTO users 
+                (Login, Password, Name, Image, DateUpdate, DateCreate) 
+                VALUES (@Login, @Password, @Name, @Image, @DateUpdate, @DateCreate)", conn))
+            {
+                cmd.Parameters.AddWithValue("@Login", Login);
+                cmd.Parameters.AddWithValue("@Password", Password);
+                cmd.Parameters.AddWithValue("@Name", Name);
+                cmd.Parameters.AddWithValue("@Image", Image ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@DateUpdate", DateTime.Now);
+                cmd.Parameters.AddWithValue("@DateCreate", DateTime.Now);
+                cmd.ExecuteNonQuery();
+            }
+
+            WorkingDB.CloseConnection(conn);
+        }
+
+        public void UpdatePin(string pin)
+        {
+            PinHash = HashPin(pin);
+
+            var conn = WorkingDB.OpenConnection();
+            if (conn == null) return;
+
+            using (var cmd = new MySqlCommand("UPDATE users SET PinHash = @pin WHERE Id = @id", conn))
+            {
+                cmd.Parameters.AddWithValue("@pin", PinHash);
+                cmd.Parameters.AddWithValue("@id", Id);
+                cmd.ExecuteNonQuery();
+            }
+
+            WorkingDB.CloseConnection(conn);
+        }
+
+        public bool VerifyPin(string pin)
+        {
+            if (string.IsNullOrEmpty(PinHash)) return false;
+            return PinHash == HashPin(pin);
+        }
+
+        private string HashPin(string pin)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                var bytes = Encoding.UTF8.GetBytes(pin + "RegINSalt2025");
+                var hash = sha256.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
+            }
+        }
+    }
+}
+
+
+================================================================================
+FILE: Classes\WorkingDB.cs
+================================================================================
+// Classes/WorkingDB.cs
+using MySql.Data.MySqlClient;
+
+public static class WorkingDB
+{
+    private static readonly string ConnectionString = "server=localhost;port=3306;database=regin;user=root;password=;";
+
+    public static MySqlConnection OpenConnection()
+    {
+        var conn = new MySqlConnection(ConnectionString);
+        try { conn.Open(); return conn; }
+        catch { return null; }
+    }
+
+    public static bool IsOpen(MySqlConnection conn) => conn?.State == System.Data.ConnectionState.Open;
+
+    public static MySqlDataReader Query(string sql, MySqlConnection conn, params (string, object)[] parameters)
+    {
+        var cmd = new MySqlCommand(sql, conn);
+        foreach (var p in parameters) cmd.Parameters.AddWithValue(p.Item1, p.Item2);
+        return cmd.ExecuteReader();
+    }
+
+    public static int ExecuteNonQuery(string sql, MySqlConnection conn, params (string, object)[] parameters)
+    {
+        var cmd = new MySqlCommand(sql, conn);
+        foreach (var p in parameters) cmd.Parameters.AddWithValue(p.Item1, p.Item2);
+        return cmd.ExecuteNonQuery();
+    }
+
+    public static void CloseConnection(MySqlConnection conn)
+    {
+        conn?.Close();
+        MySqlConnection.ClearPool(conn);
+    }
+}
+
+
+================================================================================
+FILE: Elements\ElementCapture.xaml.cs
+================================================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+namespace RegIN.Elements
+{
+    /// <summary>
+    /// Логика взаимодействия для ElementCapture.xaml
+    /// </summary>
+    public partial class ElementCapture : UserControl
+    {
+        public delegate void CorrectCapture();
+        public event CorrectCapture HandlerCorrectCapture;
+
+        private string StrCapture = "";
+        private readonly Random random = new Random(); 
+        private const int CaptchaLength = 4;
+        public ElementCapture()
+        {
+            InitializeComponent();
+            CreateCapture();
+        }
+
+        public void CreateCapture()
+        {
+            InputCapture.Text = "";
+            Capture.Children.Clear();
+            StrCapture = "";
+
+            CreateNoiseBackground();
+            GenerateCaptchaText();
+        }
+        void CreateNoiseBackground()
+        {
+            for (int i = 0; i < 50; i++) 
+            {
+                var label = new Label
+                {
+                    Content = random.Next(0, 10),
+                    FontSize = random.Next(12, 20),
+                    FontWeight = FontWeights.Bold,
+                    Foreground = new SolidColorBrush(Color.FromArgb(50,
+                        (byte)random.Next(100, 255),
+                        (byte)random.Next(100, 255),
+                        (byte)random.Next(100, 255))),
+                    Margin = new Thickness(
+                        random.Next(0, 280),
+                        random.Next(0, 50),
+                        0, 0)
+                };
+                Capture.Children.Add(label);
+            }
+        }
+
+        void GenerateCaptchaText()
+        {
+            StrCapture = "";
+            int startX = 30;
+
+            for (int i = 0; i < CaptchaLength; i++)
+            {
+                int digit = random.Next(0, 10);
+                StrCapture += digit;
+
+                var label = new Label
+                {
+                    Content = digit,
+                    FontSize = 32 + random.Next(-5, 8),
+                    FontWeight = FontWeights.Bold,
+                    Foreground = new SolidColorBrush(Color.FromArgb(255,
+                        (byte)random.Next(0, 100),
+                        (byte)random.Next(0, 100),
+                        (byte)random.Next(150, 255))),
+                    Margin = new Thickness(startX + i * 40 + random.Next(-10, 10),
+                                          random.Next(-15, 15), 0, 0),
+                    RenderTransform = new RotateTransform(random.Next(-25, 25))
+                };
+                Capture.Children.Add(label);
+            }
+        }
+
+        public bool OnCapture()
+        {
+            return StrCapture == InputCapture.Text;
+        }
+
+        private void EnterCapture(object sender, KeyEventArgs e)
+        {
+            if (InputCapture.Text.Length == CaptchaLength)
+            {
+                if (!OnCapture())
+                {
+                    CreateCapture();
+                    InputCapture.Focus();
+                }
+                else
+                {
+                    HandlerCorrectCapture?.Invoke();
+                }
+            }
+        }
+
+        private void Capture_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            CreateCapture();
+            InputCapture.Focus();
+        }
+    }
+
+}
+
+
+
+================================================================================
+FILE: Pages\Confirmation.xaml.cs
+================================================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+namespace RegIN.Pages
+{
+    /// <summary>
+    /// Логика взаимодействия для Confirmation.xaml
+    /// </summary>
+    public partial class Confirmation : Page
+    {
+        public enum TypeConfirmation
+        {
+            Login,
+            Regin
+        }
+        TypeConfirmation ThisTypeConfirmation;
+        public int Code = 0;
+        public Confirmation(TypeConfirmation TypeConfirmation)
+        {
+            InitializeComponent();
+            ThisTypeConfirmation = TypeConfirmation;
+            SendMailCode();
+        }
+        public void SendMailCode()
+        {
+            Code = new Random().Next(100000, 999999);
+            Classes.SendMail.SendMessage($"Login code: {Code}", MainWindow.mainWindow.UserLogIn.Login);
+            Thread TSendMailCode = new Thread(TimerSendMailCode);
+            TSendMailCode.Start();
+        }
+        public void TimerSendMailCode()
+        {
+            for (int i = 0; i < 60; i++)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    LTimer.Content = $"A second message can be sent after {(60 - i)} seconds";
+                });
+                Thread.Sleep(1000);
+            }
+            Dispatcher.Invoke(() =>
+            {
+                BSendMessage.IsEnabled = true;
+                LTimer.Content = "";
+            });
+        }
+        private void SendMail(object sender, RoutedEventArgs e)
+        {
+            SendMailCode();
+        }
+        private void SetCode(object sender, KeyEventArgs e)
+        {
+            if (TbCode.Text.Length == 6)
+                SetCode();
+
+        }
+        private void SetCode(object sender, RoutedEventArgs e) =>
+            SetCode();
+        void SetCode()
+        {
+            if (TbCode.Text == Code.ToString() && TbCode.IsEnabled)
+            {
+                TbCode.IsEnabled = false;
+
+                if (ThisTypeConfirmation == TypeConfirmation.Login)
+                {
+                    if (MainWindow.mainWindow.UserLogIn.PinHash == null)
+                    {
+                        MainWindow.mainWindow.OpenPage(new PinSetup());
+                    }
+                    else
+                    {
+                        MainWindow.mainWindow.OpenPage(new PinLogin(MainWindow.mainWindow.UserLogIn.Login));
+                    }
+                }
+                else
+                {
+                    MainWindow.mainWindow.UserLogIn.SetUser();
+                    MainWindow.mainWindow.OpenPage(new PinSetup());
+                }
+            }
+        }
+        private void OpenLogin(object sender, MouseButtonEventArgs e)
+        {
+            MainWindow.mainWindow.OpenPage(new Login());
+        }
+
+    }
+}
+
+
+
+================================================================================
+FILE: Pages\Login.xaml.cs
+================================================================================
+using Org.BouncyCastle.Cmp;
+using RegIN.Classes;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+namespace RegIN.Pages
+{
+    /// <summary>
+    /// Логика взаимодействия для Login.xaml
+    /// </summary>
+    public partial class Login : Page
+    {
+        string OldLogin;
+        int CountSetPassword = 2;
+        bool IsCapture = false;
+        public Login()
+        {
+            InitializeComponent();
+            MainWindow.mainWindow.UserLogIn.OnCorrectLogin+= CorrectLogin;
+            MainWindow.mainWindow.UserLogIn.OnIncorrectLogin += InCorrectLogin;
+            Capture.HandlerCorrectCapture += CorrectCapture;
+        }
+        public void CorrectLogin()
+        {
+            if (OldLogin != TbLogin.Text)
+            {
+                SetNotification("Hi" + MainWindow.mainWindow.UserLogIn.Name, Brushes.Black);
+                try
+                {
+                    BitmapImage biImg = new BitmapImage();
+                    MemoryStream ms = new MemoryStream(MainWindow.mainWindow.UserLogIn.Image);
+                    biImg.BeginInit();
+                    biImg.StreamSource=ms;
+                    biImg.EndInit();
+                    ImageSource imgSrc = biImg;
+                    DoubleAnimation StartAnimation = new DoubleAnimation();
+                    StartAnimation.From = 1;
+                    StartAnimation.To = 0;
+                    StartAnimation.Duration = TimeSpan.FromSeconds(0.6);
+                    StartAnimation.Completed += delegate
+                    {
+                        IUser.Source = imgSrc;
+                        DoubleAnimation EndAnimation = new DoubleAnimation();
+                        EndAnimation.From = 0;
+                        EndAnimation.To = 1;
+                        EndAnimation.Duration = TimeSpan.FromSeconds(1.2);
+                        IUser.BeginAnimation(Image.OpacityProperty, EndAnimation);
+                    };
+                    IUser.BeginAnimation(Image.OpacityProperty, StartAnimation);
+                }
+                catch(Exception exp)
+                {
+
+                    Debug.WriteLine(exp.Message);
+                };
+                OldLogin = TbLogin.Text;    
+            }
+        }
+        public void InCorrectLogin()
+        {
+            if (LNameUser.Content != "")
+            {
+                LNameUser.Content = "";
+                DoubleAnimation StartAnimation = new DoubleAnimation();
+                StartAnimation.From = 1;
+                StartAnimation.To = 0;
+                StartAnimation.Duration = TimeSpan.FromSeconds(0.6);
+                StartAnimation.Completed += delegate
+                {
+                    IUser.Source = new BitmapImage(new Uri("pack://application:,,,/Images/ic_user.png"));
+                    DoubleAnimation EndAnimation = new DoubleAnimation();
+                    EndAnimation.From = 0;
+                    EndAnimation.To = 1;
+                    EndAnimation.Duration = TimeSpan.FromSeconds(1.2);
+                    IUser.BeginAnimation(Image.OpacityProperty, EndAnimation);
+                };
+                IUser.BeginAnimation(OpacityProperty, StartAnimation);
+            }
+            if (TbLogin.Text.Length > 0)
+            {
+                SetNotification("Login is incorrect", Brushes.Red);
+            }
+        }
+        public void CorrectCapture()
+        {
+            Capture.IsEnabled = false;
+            IsCapture = true;
+        }
+        private void SetLogin(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                MainWindow.mainWindow.UserLogIn.GetUserByLogin(TbLogin.Text);
+                if (TbPassword.Password.Length > 0)
+                    SetPassword();
+            }
+        }
+
+        private void SetLogin(object sender, RoutedEventArgs e)
+        {
+            MainWindow.mainWindow.UserLogIn.GetUserByLogin(TbLogin.Text);
+            if (TbPassword.Password.Length > 0)
+                SetPassword();
+        }
+        public void SetNotification(string Message, SolidColorBrush _Color)
+        {
+            LNameUser.Content=Message;
+            LNameUser.Foreground = _Color;
+        }
+        private void SetPassword(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                SetPassword();
+
+        }
+        public void SetPassword()
+        {
+            if (MainWindow.mainWindow.UserLogIn.Password != String.Empty)
+            {
+                if (IsCapture)
+                {
+                    if (MainWindow.mainWindow.UserLogIn.Password == TbPassword.Password)
+                    {
+                        MainWindow.mainWindow.OpenPage(new Confirmation(Confirmation.TypeConfirmation.Login));
+                    }
+                    else
+                    {
+                        if (CountSetPassword > 0)
+                        {
+                            SetNotification($"Password is incorrect,{CountSetPassword} attempts left", Brushes.Red);
+                            CountSetPassword--;
+                        }
+                        else
+                        {
+                            Thread TBlockAuthorization = new Thread(BlockAuthorization);
+                            TBlockAuthorization.Start();
+                            SendMail.SendMessage("An attempt was made to log into your account.", MainWindow.mainWindow.UserLogIn.Login);
+                        }
+                    }
+                }
+                else
+                    SetNotification($"Enter capture", Brushes.Red);
+            }
+        }
+        public void BlockAuthorization()
+        {
+            DateTime StartBlock = DateTime.Now.AddMinutes(3);
+            Dispatcher.Invoke(() =>
+            {
+                TbLogin.IsEnabled = false;
+                TbPassword.IsEnabled = false;
+                Capture.IsEnabled = false;
+            });
+            for (int i = 0; i < 180; i++)
+            {
+                TimeSpan TimeIdle = StartBlock.Subtract(DateTime.Now);
+                string s_minutes = TimeIdle.Minutes.ToString();
+                if (TimeIdle.Minutes < 10)
+                    s_minutes = "0" + TimeIdle.Minutes;
+                string s_seconds = TimeIdle.Seconds.ToString();
+                if (TimeIdle.Seconds < 10)
+                    s_seconds = "0" + TimeIdle.Seconds;
+                Dispatcher.Invoke(() =>
+                {
+                    SetNotification($"Reauthorization available in:{s_minutes}:{s_seconds}", Brushes.Red);
+                });
+                Thread.Sleep(1000);
+            }
+            Dispatcher.Invoke(() =>
+            {
+                SetNotification("Hi" + MainWindow.mainWindow.UserLogIn.Name, Brushes.Black);
+                TbLogin.IsEnabled = true;
+                TbPassword.IsEnabled = true;
+                Capture.IsEnabled = true;
+                Capture.CreateCapture();
+                IsCapture = false;
+                CountSetPassword = 2;
+            }
+            );
+        }
+        private void RecoveryPassword(object sender, MouseButtonEventArgs e)
+        {
+            MainWindow.mainWindow.OpenPage(new Recovery());
+        }
+
+        private void OpenRegIn(object sender, MouseButtonEventArgs e)
+        {
+            MainWindow.mainWindow.OpenPage(new Regin());
+        }
+    }
+}
+
+
+
+================================================================================
+FILE: Pages\PinLogin.xaml.cs
+================================================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+namespace RegIN.Pages
+{
+    /// <summary>
+    /// Логика взаимодействия для PinLogin.xaml
+    /// </summary>
+    public partial class PinLogin : Page
+    {
+        private string lastLogin = "";
+        public PinLogin(string login)
+        {
+            InitializeComponent();
+            lastLogin = login;
+            MainWindow.mainWindow.UserLogIn.GetUserByLogin(login);
+            MainWindow.mainWindow.UserLogIn.OnCorrectLogin += () =>
+            {
+                if (MainWindow.mainWindow.UserLogIn.PinHash != null)
+                    this.Dispatcher.Invoke(() => {  });
+            };
+        }
+
+        private void Login_Click(object sender, RoutedEventArgs e)
+        {
+            if (PinBox.Password.Length != 4)
+            {
+                ErrorText.Text = "Enter 4 digits";
+                return;
+            }
+
+            if (MainWindow.mainWindow.UserLogIn.VerifyPin(PinBox.Password))
+            {
+                MessageBox.Show($"Welcome, {MainWindow.mainWindow.UserLogIn.Name}!");
+               
+            }
+            else
+            {
+                ErrorText.Text = "Wrong PIN";
+                PinBox.Password = "";
+            }
+        }
+
+        private void GoToPasswordLogin(object sender, MouseButtonEventArgs e)
+        {
+            MainWindow.mainWindow.OpenPage(new Login());
+        }
+    }
+}
+
+
+
+================================================================================
+FILE: Pages\PinSetup.xaml.cs
+================================================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+namespace RegIN.Pages
+{
+    /// <summary>
+    /// Логика взаимодействия для PinSetup.xaml
+    /// </summary>
+    public partial class PinSetup : Page
+    {
+        public PinSetup()
+        {
+            InitializeComponent();
+            PinBox.PasswordChanged += (s, e) =>
+            {
+                var pb = s as PasswordBox;
+                if (pb.Password.Length == 4) ConfirmPin_Click(null, null);
+            };
+        }
+
+        private void ConfirmPin_Click(object sender, RoutedEventArgs e)
+        {
+            if (PinBox.Password.Length != 4 || !PinBox.Password.All(char.IsDigit))
+            {
+                Info.Text = "PIN must be 4 digits!";
+                return;
+            }
+
+            MainWindow.mainWindow.UserLogIn.UpdatePin(PinBox.Password);
+            MessageBox.Show("PIN set successfully! You can now log in with it.");
+            MainWindow.mainWindow.OpenPage(new Login());
+        }
+    }
+}
+
+
+
+================================================================================
+FILE: Pages\Recovery.xaml.cs
+================================================================================
+using MySql.Data.MySqlClient;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using static Org.BouncyCastle.Asn1.Cmp.Challenge;
+
+namespace RegIN.Pages
+{
+    /// <summary>
+    /// Логика взаимодействия для Recovery.xaml
+    /// </summary>
+    public partial class Recovery : Page
+    {
+        string OldLogin;
+        bool IsCapture = false;
+        private readonly Random random = new Random();
+        private string _generatedPassword;
+        public Recovery()
+        {
+            InitializeComponent();
+            MainWindow.mainWindow.UserLogIn.OnCorrectLogin += CorrectLogin;
+            MainWindow.mainWindow.UserLogIn.OnIncorrectLogin += IncorrectLogin;
+            if (Capture != null)
+                Capture.HandlerCorrectCapture += CorrectCapture;
+        }
+
+        private void CorrectLogin()
+        {
+            if (OldLogin == TbLogin.Text) return;
+
+            SetNotification($"Привет, {MainWindow.mainWindow.UserLogIn.Name}!", Brushes.Black);
+
+            if (MainWindow.mainWindow.UserLogIn.Image != null)
+            {
+                try
+                {
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.StreamSource = new MemoryStream(MainWindow.mainWindow.UserLogIn.Image);
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+                    AnimateImage(bitmap);
+                }
+                catch { }
+            }
+
+            OldLogin = TbLogin.Text;
+            TrySendRecovery();
+        }
+
+        private void IncorrectLogin()
+        {
+            if (!string.IsNullOrEmpty(LNameUser.Content?.ToString()))
+            {
+                SetNotification("", Brushes.Transparent);
+                AnimateImage(new BitmapImage(new Uri("pack://application:,,,/Images/ic_user.png")));
+            }
+
+            if (TbLogin.Text.Length > 0)
+                SetNotification("Пользователь не найден", Brushes.Red);
+        }
+
+        private void CorrectCapture()
+        {
+            IsCapture = true;
+            if (Capture != null) Capture.IsEnabled = false;
+            TrySendRecovery();
+        }
+
+        private void SetLogin(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                MainWindow.mainWindow.UserLogIn.GetUserByLogin(TbLogin.Text);
+        }
+
+        private void SetLogin(object sender, RoutedEventArgs e) =>
+            MainWindow.mainWindow.UserLogIn.GetUserByLogin(TbLogin.Text);
+
+        private void TrySendRecovery()
+        {
+            if (!IsCapture) return;
+
+            // Генерируем пароль и хэшируем его
+            _generatedPassword = GeneratePassword();
+            string newHashedPassword = HashPassword(_generatedPassword);
+
+            // Сохраняем хэш в базу
+            SaveNewPasswordToDatabase(newHashedPassword);
+
+            // Отправляем письмо с ОТКРЫТЫМ паролем
+            try
+            {
+                Classes.SendMail.SendMessage($"Ваш новый пароль: {_generatedPassword}\n" +
+                                           $"Рекомендуем сменить его после входа в систему.",
+                                           MainWindow.mainWindow.UserLogIn.Login);
+
+                AnimateImage(new BitmapImage(new Uri("pack://application:,,,/Images/ic_mail.png")));
+                SetNotification("Письмо с новым паролем отправлено на почту!", Brushes.Green);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка отправки письма: {ex.Message}");
+                SetNotification("Ошибка отправки письма. Попробуйте позже.", Brushes.Red);
+            }
+        }
+
+        private string GeneratePassword()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+            return new string(Enumerable.Repeat(chars, 12)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        private string HashPassword(string password)
+        {
+            // Используем тот же алгоритм хэширования, что и при регистрации
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(password + "RegINSalt2025");
+                byte[] hash = sha256.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
+            }
+        }
+
+        private void SaveNewPasswordToDatabase(string hashedPassword)
+        {
+            var conn = WorkingDB.OpenConnection();
+            if (conn == null) return;
+
+            try
+            {
+                var cmd = new MySqlCommand(
+                    "UPDATE users SET Password = @pass, DateUpdate = NOW() WHERE Login = @login", conn);
+                cmd.Parameters.AddWithValue("@pass", hashedPassword);
+                cmd.Parameters.AddWithValue("@login", MainWindow.mainWindow.UserLogIn.Login);
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Ошибка сохранения пароля: " + ex.Message);
+            }
+            finally
+            {
+                WorkingDB.CloseConnection(conn);
+            }
+        }
+
+        private void AnimateImage(BitmapImage newImg)
+        {
+            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(0.5));
+            fadeOut.Completed += (_, __) =>
+            {
+                IUser.Source = newImg;
+                var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(.8));
+                IUser.BeginAnimation(OpacityProperty, fadeIn);
+            };
+            IUser.BeginAnimation(OpacityProperty, fadeOut);
+        }
+
+        private void OpenLogin(object sender, MouseButtonEventArgs e)
+        {
+            MainWindow.mainWindow.OpenPage(new Login());
+        }
+
+        public void SetNotification(string text, SolidColorBrush color)
+        {
+            LNameUser.Content = text;
+            LNameUser.Foreground = color;
+        }
+
+        // Метод для повторной отправки (если нужно)
+        public void ResendPassword()
+        {
+            if (string.IsNullOrEmpty(_generatedPassword))
+                return;
+
+            try
+            {
+                Classes.SendMail.SendMessage($"Ваш пароль (повторная отправка): {_generatedPassword}",
+                                           MainWindow.mainWindow.UserLogIn.Login);
+                SetNotification("Пароль отправлен повторно!", Brushes.Green);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка повторной отправки: {ex.Message}");
+            }
+        }
+    }
+}
+
+
+
+================================================================================
+FILE: Pages\Regin.xaml.cs
+================================================================================
+using Microsoft.Win32;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Imaging = Aspose.Imaging;
+using static RegIN.Classes.User;
+
+namespace RegIN.Pages
+{
+    /// <summary>
+    /// Логика взаимодействия для Regin.xaml
+    /// </summary>
+    public partial class Regin : Page
+    {
+        OpenFileDialog FileDialogImage = new OpenFileDialog();
+        private bool IsLoginValid = false;
+        private bool IsPasswordValid = false;
+        private bool IsConfirmPasswordValid = false;
+        private bool IsImageSelected = false;
+        public Regin()
+        {
+            InitializeComponent();
+            MainWindow.mainWindow.UserLogIn.OnCorrectLogin += () =>
+            {
+                SetNotification("Этот email уже зарегистрирован", Brushes.Red);
+                IsLoginValid = false;
+            };
+
+            MainWindow.mainWindow.UserLogIn.OnIncorrectLogin += () =>
+            {
+                SetNotification("", Brushes.Black);
+                IsLoginValid = true;
+                TryGoToConfirmation();
+            };
+
+            FileDialogImage.Filter = "Изображения (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|Все файлы (*.*)|*.*";
+            FileDialogImage.Title = "Выберите аватар";
+        }
+
+        private void SetLogin(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) ValidateLogin(); }
+        private void SetLogin(object sender, RoutedEventArgs e) => ValidateLogin();
+
+        private void SetPassword(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) ValidatePassword(); }
+        private void SetPassword(object sender, RoutedEventArgs e) => ValidatePassword();
+
+        private void SetName(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = !char.IsLetter(e.Text[0]);
+        }
+
+        private void ValidateLogin()
+        {
+            var regex = new Regex(@"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+            if (string.IsNullOrWhiteSpace(TbLogin.Text) || !regex.IsMatch(TbLogin.Text))
+            {
+                SetNotification("Некорректный email", Brushes.Red);
+                IsLoginValid = false;
+                return;
+            }
+
+            MainWindow.mainWindow.UserLogIn.GetUserByLogin(TbLogin.Text);
+        }
+
+        private void ValidatePassword()
+        {
+            var regex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*~_])(?=.{10,})[A-Za-z0-9!@#$%^&*~_]+$");
+
+            if (string.IsNullOrEmpty(TbPassword.Password) || !regex.IsMatch(TbPassword.Password))
+            {
+                SetNotification("Пароль слабый: минимум 10 символов, большая и маленькая буква + символ", Brushes.Red);
+                IsPasswordValid = false;
+            }
+            else
+            {
+                IsPasswordValid = true;
+                if (TbConfirmPassword.Password.Length > 0)
+                    ValidateConfirmPassword();
+                else
+                    SetNotification("", Brushes.Black);
+            }
+
+            TryGoToConfirmation();
+        }
+
+        private void ValidateConfirmPassword()
+        {
+            if (TbPassword.Password != TbConfirmPassword.Password)
+            {
+                SetNotification("Пароли не совпадают", Brushes.Red);
+                IsConfirmPasswordValid = false;
+            }
+            else
+            {
+                SetNotification("Пароли совпадают", Brushes.Green);
+                IsConfirmPasswordValid = true;
+            }
+            TryGoToConfirmation();
+        }
+
+        private void TryGoToConfirmation()
+        {
+            if (IsLoginValid &&
+                IsPasswordValid &&
+                IsConfirmPasswordValid &&
+                !string.IsNullOrWhiteSpace(TbName.Text))
+            {
+                var user = MainWindow.mainWindow.UserLogIn;
+                user.Login = TbLogin.Text.Trim();
+                user.Password = TbPassword.Password;
+                user.Name = TbName.Text.Trim();
+                user.DateUpdate = DateTime.Now;
+                user.DateCreate = DateTime.Now;
+
+                if (IsImageSelected && File.Exists("IUser.jpg"))
+                {
+                    user.Image = File.ReadAllBytes("IUser.jpg");
+                }
+
+                MainWindow.mainWindow.OpenPage(new Confirmation(Confirmation.TypeConfirmation.Regin));
+            }
+        }
+
+        private void SetNotification(string text, SolidColorBrush color)
+        {
+            LNameUser.Content = text;
+            LNameUser.Foreground = color;
+        }
+        private void SelectImage(object sender, MouseButtonEventArgs e)
+        {
+            if (FileDialogImage.ShowDialog() != true) return;
+
+            try
+            {
+                using (var img = Imaging.Image.Load(FileDialogImage.FileName))
+                {
+                    int w = img.Width > img.Height ? (int)(img.Width * (256f / img.Height)) : 256;
+                    int h = img.Width > img.Height ? 256 : (int)(img.Height * (256f / img.Width));
+                    img.Resize(w, h);
+                    img.Save("IUser.jpg");
+                }
+
+                using (var raster = (Imaging.RasterImage)Imaging.Image.Load("IUser.jpg"))
+                {
+                    if (!raster.IsCached) raster.CacheData();
+                    int x = Math.Max(0, (raster.Width - 256) / 2);
+                    int y = Math.Max(0, (raster.Height - 256) / 2);
+                    var rect = new Imaging.Rectangle(x, y, 256, 256);
+                    raster.Crop(rect);
+                    raster.Save("IUser.jpg");
+                }
+
+                IUser.Source = new BitmapImage(new Uri(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "IUser.jpg")));
+
+                var anim = new DoubleAnimation(0.3, 1, TimeSpan.FromSeconds(0.6));
+                IUser.BeginAnimation(OpacityProperty, anim);
+
+                IsImageSelected = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка: " + ex.Message);
+            }
+        }
+
+        private void OpenLogin(object sender, MouseButtonEventArgs e)
+        {
+            MainWindow.mainWindow.OpenPage(new Login());
+        }
+        private void TbConfirmPassword_LostFocus(object sender, RoutedEventArgs e) => ValidateConfirmPassword();
+        private void TbConfirmPassword_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) ValidateConfirmPassword();
+        }
+    }
+}
+
+
+
+================================================================================
+FILE: Properties\AssemblyInfo.cs
+================================================================================
+using System.Reflection;
+using System.Resources;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Windows;
+
+// Общие сведения об этой сборке предоставляются следующим набором
+// набор атрибутов. Измените значения этих атрибутов, чтобы изменить сведения,
+// связанные со сборкой.
+[assembly: AssemblyTitle("RegIN")]
+[assembly: AssemblyDescription("")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("RegIN")]
+[assembly: AssemblyCopyright("Copyright ©  2025")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
+
+// Установка значения False для параметра ComVisible делает типы в этой сборке невидимыми
+// для компонентов COM. Если необходимо обратиться к типу в этой сборке через
+// из модели COM, установите атрибут ComVisible для этого типа в значение true.
+[assembly: ComVisible(false)]
+
+//Чтобы начать создание локализуемых приложений, задайте
+//<UICulture>CultureYouAreCodingWith</UICulture> в файле .csproj
+//в <PropertyGroup>. Например, при использовании английского (США)
+//в своих исходных файлах установите <UICulture> в en-US.  Затем отмените преобразование в комментарий
+//атрибута NeutralResourceLanguage ниже.  Обновите "en-US" в
+//строка внизу для обеспечения соответствия настройки UICulture в файле проекта.
+
+//[assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.Satellite)]
+
+
+[assembly: ThemeInfo(
+    ResourceDictionaryLocation.None, //где расположены словари ресурсов по конкретным тематикам
+                                     //(используется, если ресурс не найден на странице,
+                                     // или в словарях ресурсов приложения)
+    ResourceDictionaryLocation.SourceAssembly //где расположен словарь универсальных ресурсов
+                                              //(используется, если ресурс не найден на странице,
+                                              // в приложении или в каких-либо словарях ресурсов для конкретной темы)
+)]
+
+
+// Сведения о версии для сборки включают четыре следующих значения:
+//
+//      Основной номер версии
+//      Дополнительный номер версии
+//      Номер сборки
+//      Номер редакции
+//
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
+
+
+
+================================================================================
+FILE: Properties\Resources.Designer.cs
+================================================================================
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     Этот код был создан программным средством.
+//     Версия среды выполнения: 4.0.30319.42000
+//
+//     Изменения в этом файле могут привести к неправильному поведению и будут утрачены, если
+//     код создан повторно.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+namespace RegIN.Properties
+{
+
+
+    /// <summary>
+    ///   Класс ресурсов со строгим типом для поиска локализованных строк и пр.
+    /// </summary>
+    // Этот класс был автоматически создан при помощи StronglyTypedResourceBuilder
+    // класс с помощью таких средств, как ResGen или Visual Studio.
+    // Для добавления или удаления члена измените файл .ResX, а затем перезапустите ResGen
+    // с параметром /str или заново постройте свой VS-проект.
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    internal class Resources
+    {
+
+        private static global::System.Resources.ResourceManager resourceMan;
+
+        private static global::System.Globalization.CultureInfo resourceCulture;
+
+        [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
+        internal Resources()
+        {
+        }
+
+        /// <summary>
+        ///   Возврат кэшированного экземпляра ResourceManager, используемого этим классом.
+        /// </summary>
+        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
+        internal static global::System.Resources.ResourceManager ResourceManager
+        {
+            get
+            {
+                if ((resourceMan == null))
+                {
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("RegIN.Properties.Resources", typeof(Resources).Assembly);
+                    resourceMan = temp;
+                }
+                return resourceMan;
+            }
+        }
+
+        /// <summary>
+        ///   Переопределяет свойство CurrentUICulture текущего потока для всех
+        ///   подстановки ресурсов с помощью этого класса ресурсов со строгим типом.
+        /// </summary>
+        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
+        internal static global::System.Globalization.CultureInfo Culture
+        {
+            get
+            {
+                return resourceCulture;
+            }
+            set
+            {
+                resourceCulture = value;
+            }
+        }
+    }
+}
+
+
+
+================================================================================
+FILE: Properties\Resources.resx
+================================================================================
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+</root>
+
+
+================================================================================
+FILE: Properties\Settings.Designer.cs
+================================================================================
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+namespace RegIN.Properties
+{
+
+
+    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "11.0.0.0")]
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase
+    {
+
+        private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
+
+        public static Settings Default
+        {
+            get
+            {
+                return defaultInstance;
+            }
+        }
+    }
+}
+
+
+
