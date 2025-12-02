@@ -1,5 +1,5 @@
-﻿PROJECT EXPORT - 12/02/2025 16:33:07
-Project Path: C:\Users\student-a502.PERMAVIAT\Desktop\RegIN
+﻿PROJECT EXPORT - 12/02/2025 21:38:01
+Project Path: C:\Users\dreamgonewithout\Desktop\MyFirstProject\RegIN
 Total Files: 21
 
 ================================================================================
@@ -473,6 +473,7 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using System.Windows;
 
 namespace RegIN.Classes
 {
@@ -546,25 +547,40 @@ namespace RegIN.Classes
             var conn = WorkingDB.OpenConnection();
             if (conn == null) return;
 
-            using (var cmd = new MySqlCommand(@"INSERT INTO users 
-                (Login, Password, Name, Image, DateUpdate, DateCreate) 
-                VALUES (@Login, @Password, @Name, @Image, @DateUpdate, @DateCreate)", conn))
+            try
             {
-                cmd.Parameters.AddWithValue("@Login", Login);
-                cmd.Parameters.AddWithValue("@Password", Password);
-                cmd.Parameters.AddWithValue("@Name", Name);
-                cmd.Parameters.AddWithValue("@Image", Image ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@DateUpdate", DateTime.Now);
-                cmd.Parameters.AddWithValue("@DateCreate", DateTime.Now);
-                cmd.ExecuteNonQuery();
-            }
+                using (var cmd = new MySqlCommand(@"INSERT INTO users
+            (Login, Password, Name, Image, DateUpdate, DateCreate)
+            VALUES (@Login, @Password, @Name, @Image, NOW(), NOW())", conn))
+                {
+                    cmd.Parameters.AddWithValue("@Login", Login);
+                    cmd.Parameters.AddWithValue("@Password", Password);
+                    cmd.Parameters.AddWithValue("@Name", Name);
+                    cmd.Parameters.AddWithValue("@Image", Image ?? (object)DBNull.Value);
+                    cmd.ExecuteNonQuery();
+                }
 
-            WorkingDB.CloseConnection(conn);
+                // Успешно! Теперь можно очищать
+                Clear();
+            }
+            catch (MySqlException ex) when (ex.Number == 1062) // 1062 = Duplicate entry
+            {
+                MessageBox.Show("Пользователь с таким email уже существует!", "Ошибка",
+                                MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка при регистрации: " + ex.Message);
+            }
+            finally
+            {
+                WorkingDB.CloseConnection(conn);
+            }
         }
 
         public void UpdatePin(string pin)
         {
-            PinHash = pin;  // Убрано хэширование
+            PinHash = pin;
             var conn = WorkingDB.OpenConnection();
             if (conn == null) return;
             var cmd = new MySqlCommand("UPDATE users SET PinHash = @pin WHERE Id = @id", conn);
@@ -579,8 +595,13 @@ namespace RegIN.Classes
             if (string.IsNullOrEmpty(PinHash)) return false;
             return PinHash == pin; 
         }
+        public void Clear()
+        {
+            Id = 0;
+            Login = Password = Name = PinHash = string.Empty;
+            Image = null;
+        }
 
-        
     }
 }
 
@@ -784,15 +805,35 @@ namespace RegIN.Pages
             InitializeComponent();
             _login = login;
 
-            // Загружаем пользователя для проверки наличия PIN
-            MainWindow.mainWindow.UserLogIn.GetUserByLogin(login);
+            // Если в MainWindow уже загружен другой логин — загрузим нужного пользователя.
+            // Это защищённый вызов: если пользователь уже загружен и совпадает — лишний запрос не делаем.
+            try
+            {
+                var current = MainWindow.mainWindow.UserLogIn;
+                if (current == null || current.Login != login)
+                {
+                    MainWindow.mainWindow.UserLogIn.GetUserByLogin(login);
+                }
+            }
+            catch
+            {
+                // молча, UI уведомит пользователю если что-то не так
+            }
 
-            // Если PIN не установлен, показываем только кнопку с почтой
-            if (string.IsNullOrEmpty(MainWindow.mainWindow.UserLogIn.PinHash))
+            // Если PIN не установлен, скрываем кнопку PIN
+            try
+            {
+                if (string.IsNullOrEmpty(MainWindow.mainWindow.UserLogIn.PinHash))
+                {
+                    BtnPin.Visibility = Visibility.Collapsed;
+                }
+            }
+            catch
             {
                 BtnPin.Visibility = Visibility.Collapsed;
             }
         }
+
         private void BtnPin_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.mainWindow.OpenPage(new PinLogin(_login));
@@ -800,6 +841,7 @@ namespace RegIN.Pages
 
         private void BtnMail_Click(object sender, RoutedEventArgs e)
         {
+            // Открываем Confirmation — Confirmation использует MainWindow.mainWindow.UserLogIn.Login как адрес
             MainWindow.mainWindow.OpenPage(new Confirmation(Confirmation.TypeConfirmation.Login));
         }
 
@@ -845,73 +887,87 @@ namespace RegIN.Pages
             Regin
         }
         TypeConfirmation ThisTypeConfirmation;
-        public int Code = 0;
-        public Confirmation(TypeConfirmation TypeConfirmation)
+        private int Code = 0;
+        private Thread timerThread;
+        private bool _isProcessing = false;
+        public Confirmation(TypeConfirmation type)
         {
             InitializeComponent();
-            ThisTypeConfirmation = TypeConfirmation;
-            SendMailCode();
+            ThisTypeConfirmation = type;  // ← правильное присваивание
+            BSendMessage.IsEnabled = false;
+            SendMailCode(); // ← отправка сразу при открытии
         }
-        public void SendMailCode()
+
+        private void SendMailCode()
         {
             Code = new Random().Next(100000, 999999);
-            Classes.SendMail.SendMessage($"Login code: {Code}", MainWindow.mainWindow.UserLogIn.Login);
-            Thread TSendMailCode = new Thread(TimerSendMailCode);
-            TSendMailCode.Start();
-        }
-        public void TimerSendMailCode()
-        {
-            for (int i = 0; i < 60; i++)
+            string recipient = MainWindow.mainWindow.UserLogIn.Login;
+
+            // ← Эта строка точно отправляет письмо (как было у тебя изначально)
+            Classes.SendMail.SendMessage($"Ваш код подтверждения: {Code}", recipient);
+
+            LTimer.Content = "Повторная отправка через 60 секунд";
+            BSendMessage.IsEnabled = false;
+
+            timerThread?.Abort();
+            timerThread = new Thread(() =>
             {
+                for (int i = 60; i > 0; i--)
+                {
+                    Dispatcher.Invoke(() => LTimer.Content = $"Повторная отправка через {i} сек");
+                    Thread.Sleep(1000);
+                }
                 Dispatcher.Invoke(() =>
                 {
-                    LTimer.Content = $"A second message can be sent after {(60 - i)} seconds";
+                    BSendMessage.IsEnabled = true;
+                    LTimer.Content = "Можно отправить код повторно";
                 });
-                Thread.Sleep(1000);
-            }
-            Dispatcher.Invoke(() =>
-            {
-                BSendMessage.IsEnabled = true;
-                LTimer.Content = "";
-            });
+            })
+            { IsBackground = true };
+            timerThread.Start();
         }
-        private void SendMail(object sender, RoutedEventArgs e)
-        {
-            SendMailCode();
-        }
-        private void SetCode(object sender, KeyEventArgs e)
-        {
-            if (TbCode.Text.Length == 6)
-                SetCode();
 
-        }
-        private void SetCode(object sender, RoutedEventArgs e) =>
-            SetCode();
-        void SetCode()
+        private void SendMail(object sender, RoutedEventArgs e) => SendMailCode();
+
+        private void SetCode(object sender, RoutedEventArgs e)
         {
-            if (TbCode.Text == Code.ToString() && TbCode.IsEnabled)
+            if (TbCode.Text.Length != 6) return;
+
+            if (TbCode.Text == Code.ToString())
             {
                 TbCode.IsEnabled = false;
+                BSendMessage.IsEnabled = false;
 
                 if (ThisTypeConfirmation == TypeConfirmation.Login)
                 {
                     MessageBox.Show($"Добро пожаловать, {MainWindow.mainWindow.UserLogIn.Name}!");
-                    MainWindow.mainWindow.OpenPage(new Login()); 
+                    MainWindow.mainWindow.OpenPage(new Login());
                 }
                 else // Regin
                 {
                     MainWindow.mainWindow.UserLogIn.SetUser();
-                    MainWindow.mainWindow.OpenPage(new PinSetup(true)); // true - это регистрация
+                    MainWindow.mainWindow.UserLogIn.Clear();
+                    MessageBox.Show("Регистрация завершена успешно!");
+                    MainWindow.mainWindow.OpenPage(new PinSetup(true));
                 }
             }
+            else
+            {
+                MessageBox.Show("Неверный код", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                TbCode.Text = "";
+                TbCode.Focus();
+            }
         }
+
+        private void SetCode(object sender, KeyEventArgs e) => SetCode(sender, (RoutedEventArgs)e);
+
         private void OpenLogin(object sender, MouseButtonEventArgs e)
         {
             MainWindow.mainWindow.OpenPage(new Login());
         }
-
     }
 }
+
 
 
 
@@ -952,49 +1008,46 @@ namespace RegIN.Pages
         public Login()
         {
             InitializeComponent();
-            MainWindow.mainWindow.UserLogIn.OnCorrectLogin+= CorrectLogin;
+            MainWindow.mainWindow.UserLogIn.OnCorrectLogin += CorrectLogin;
             MainWindow.mainWindow.UserLogIn.OnIncorrectLogin += InCorrectLogin;
-            Capture.HandlerCorrectCapture += CorrectCapture;
+            if (Capture != null)
+                Capture.HandlerCorrectCapture += CorrectCapture;
         }
+        
         public void CorrectLogin()
         {
-            if (OldLogin != TbLogin.Text)
+            if (OldLogin == TbLogin.Text) return;
+
+            var name = MainWindow.mainWindow.UserLogIn?.Name;
+            SetNotification(name != null ? "Hi " + name : "Hi", System.Windows.Media.Brushes.Black);
+
+            try
             {
-                SetNotification("Hi" + MainWindow.mainWindow.UserLogIn.Name, Brushes.Black);
-                try
+                if (MainWindow.mainWindow.UserLogIn?.Image != null)
                 {
                     BitmapImage biImg = new BitmapImage();
                     MemoryStream ms = new MemoryStream(MainWindow.mainWindow.UserLogIn.Image);
                     biImg.BeginInit();
-                    biImg.StreamSource=ms;
+                    biImg.StreamSource = ms;
+                    biImg.CacheOption = BitmapCacheOption.OnLoad;
                     biImg.EndInit();
-                    ImageSource imgSrc = biImg;
-                    DoubleAnimation StartAnimation = new DoubleAnimation();
-                    StartAnimation.From = 1;
-                    StartAnimation.To = 0;
-                    StartAnimation.Duration = TimeSpan.FromSeconds(0.6);
-                    StartAnimation.Completed += delegate
-                    {
-                        IUser.Source = imgSrc;
-                        DoubleAnimation EndAnimation = new DoubleAnimation();
-                        EndAnimation.From = 0;
-                        EndAnimation.To = 1;
-                        EndAnimation.Duration = TimeSpan.FromSeconds(1.2);
-                        IUser.BeginAnimation(Image.OpacityProperty, EndAnimation);
-                    };
-                    IUser.BeginAnimation(Image.OpacityProperty, StartAnimation);
+                    IUser.Source = biImg;
                 }
-                catch(Exception exp)
+                else
                 {
-
-                    Debug.WriteLine(exp.Message);
-                };
-                OldLogin = TbLogin.Text;    
+                    IUser.Source = new BitmapImage(new Uri("pack://application:,,,/Images/ic_user.png"));
+                }
             }
+            catch (Exception exp)
+            {
+                Debug.WriteLine(exp.Message);
+            }
+
+            OldLogin = TbLogin.Text;
         }
         public void InCorrectLogin()
         {
-            if (LNameUser.Content != "")
+            if (!string.IsNullOrEmpty(LNameUser.Content?.ToString()))
             {
                 LNameUser.Content = "";
                 DoubleAnimation StartAnimation = new DoubleAnimation();
@@ -1014,12 +1067,12 @@ namespace RegIN.Pages
             }
             if (TbLogin.Text.Length > 0)
             {
-                SetNotification("Login is incorrect", Brushes.Red);
+                SetNotification("Login is incorrect", System.Windows.Media.Brushes.Red);
             }
         }
         public void CorrectCapture()
         {
-            Capture.IsEnabled = false;
+            if (Capture != null) Capture.IsEnabled = false;
             IsCapture = true;
         }
         private void SetLogin(object sender, KeyEventArgs e)
@@ -1038,46 +1091,48 @@ namespace RegIN.Pages
             if (TbPassword.Password.Length > 0)
                 SetPassword();
         }
-        public void SetNotification(string Message, SolidColorBrush _Color)
+        public void SetNotification(string Message, System.Windows.Media.SolidColorBrush _Color)
         {
-            LNameUser.Content=Message;
+            LNameUser.Content = Message;
             LNameUser.Foreground = _Color;
         }
         private void SetPassword(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
                 SetPassword();
-
         }
         public void SetPassword()
         {
-            if (MainWindow.mainWindow.UserLogIn.Password != String.Empty)
+            if (string.IsNullOrEmpty(MainWindow.mainWindow.UserLogIn?.Password))
             {
-                if (IsCapture)
+                SetNotification("User has no password set", System.Windows.Media.Brushes.Red);
+                return;
+            }
+
+            if (IsCapture)
+            {
+                if (MainWindow.mainWindow.UserLogIn.Password == TbPassword.Password)
                 {
-                    if (MainWindow.mainWindow.UserLogIn.Password == TbPassword.Password)
+                    // Переходим на выбор метода входа (pin или mail)
+                    MainWindow.mainWindow.OpenPage(new ChoiceLogin(TbLogin.Text));
+                }
+                else
+                {
+                    if (CountSetPassword > 0)
                     {
-                        // Вместо перехода на Confirmation сразу, переходим на выбор метода входа
-                        MainWindow.mainWindow.OpenPage(new ChoiceLogin(TbLogin.Text));
+                        SetNotification($"Password is incorrect, {CountSetPassword} attempts left", System.Windows.Media.Brushes.Red);
+                        CountSetPassword--;
                     }
                     else
                     {
-                        if (CountSetPassword > 0)
-                        {
-                            SetNotification($"Password is incorrect,{CountSetPassword} attempts left", Brushes.Red);
-                            CountSetPassword--;
-                        }
-                        else
-                        {
-                            Thread TBlockAuthorization = new Thread(BlockAuthorization);
-                            TBlockAuthorization.Start();
-                            SendMail.SendMessage("An attempt was made to log into your account.", MainWindow.mainWindow.UserLogIn.Login);
-                        }
+                        Thread TBlockAuthorization = new Thread(BlockAuthorization) { IsBackground = true };
+                        TBlockAuthorization.Start();
+                        Classes.SendMail.SendMessage("An attempt was made to log into your account.", MainWindow.mainWindow.UserLogIn.Login);
                     }
                 }
-                else
-                    SetNotification($"Enter capture", Brushes.Red);
             }
+            else
+                SetNotification($"Enter capture", System.Windows.Media.Brushes.Red);
         }
         public void BlockAuthorization()
         {
@@ -1086,34 +1141,32 @@ namespace RegIN.Pages
             {
                 TbLogin.IsEnabled = false;
                 TbPassword.IsEnabled = false;
-                Capture.IsEnabled = false;
+                if (Capture != null) Capture.IsEnabled = false;
             });
             for (int i = 0; i < 180; i++)
             {
                 TimeSpan TimeIdle = StartBlock.Subtract(DateTime.Now);
-                string s_minutes = TimeIdle.Minutes.ToString();
-                if (TimeIdle.Minutes < 10)
-                    s_minutes = "0" + TimeIdle.Minutes;
-                string s_seconds = TimeIdle.Seconds.ToString();
-                if (TimeIdle.Seconds < 10)
-                    s_seconds = "0" + TimeIdle.Seconds;
+                string s_minutes = TimeIdle.Minutes.ToString("D2");
+                string s_seconds = TimeIdle.Seconds.ToString("D2");
                 Dispatcher.Invoke(() =>
                 {
-                    SetNotification($"Reauthorization available in:{s_minutes}:{s_seconds}", Brushes.Red);
+                    SetNotification($"Reauthorization available in: {s_minutes}:{s_seconds}", System.Windows.Media.Brushes.Red);
                 });
                 Thread.Sleep(1000);
             }
             Dispatcher.Invoke(() =>
             {
-                SetNotification("Hi " + MainWindow.mainWindow.UserLogIn.Name, Brushes.Black);
+                SetNotification("Hi " + MainWindow.mainWindow.UserLogIn?.Name, System.Windows.Media.Brushes.Black);
                 TbLogin.IsEnabled = true;
                 TbPassword.IsEnabled = true;
-                Capture.IsEnabled = true;
-                Capture.CreateCapture();
+                if (Capture != null)
+                {
+                    Capture.CreateCapture();
+                    Capture.IsEnabled = true;
+                }
                 IsCapture = false;
                 CountSetPassword = 2;
-            }
-            );
+            });
         }
         private void RecoveryPassword(object sender, MouseButtonEventArgs e)
         {
@@ -1159,16 +1212,25 @@ namespace RegIN.Pages
         {
             InitializeComponent();
             lastLogin = login;
-            MainWindow.mainWindow.UserLogIn.GetUserByLogin(login);
+
+            // Подгружаем пользователя, если нужно
+            if (MainWindow.mainWindow.UserLogIn == null || MainWindow.mainWindow.UserLogIn.Login != login)
+            {
+                MainWindow.mainWindow.UserLogIn.GetUserByLogin(login);
+            }
+
+            // тут можно обновить UI, если нужно
             MainWindow.mainWindow.UserLogIn.OnCorrectLogin += () =>
             {
-                if (MainWindow.mainWindow.UserLogIn.PinHash != null)
-                    this.Dispatcher.Invoke(() => {  });
+                // Если PIN есть — можно показать UI элементы (если нужно)
             };
         }
 
         private void Login_Click(object sender, RoutedEventArgs e)
         {
+            if (PinBox == null)
+                return;
+
             if (PinBox.Password.Length != 4)
             {
                 ErrorText.Text = "Enter 4 digits";
@@ -1178,7 +1240,8 @@ namespace RegIN.Pages
             if (MainWindow.mainWindow.UserLogIn.VerifyPin(PinBox.Password))
             {
                 MessageBox.Show($"Welcome, {MainWindow.mainWindow.UserLogIn.Name}!");
-               
+                // Тут можно перейти на главную страницу приложения:
+                MainWindow.mainWindow.OpenPage(new Login());
             }
             else
             {
@@ -1193,6 +1256,7 @@ namespace RegIN.Pages
         }
     }
 }
+
 
 
 
@@ -1222,21 +1286,21 @@ namespace RegIN.Pages
     public partial class PinSetup : Page
     {
         private bool _isRegistration;
-        public PinSetup()
+
+        public PinSetup() : this(false)
+        {
+        }
+
+        public PinSetup(bool isRegistration = false)
         {
             InitializeComponent();
             _isRegistration = isRegistration;
 
-            if (_isRegistration)
-            {
-                TitleText.Text = "Установите PIN-код для входа";
-                Info.Text = "PIN-код будет использоваться для быстрого входа";
-            }
-
+            // авто-подтверждение при 4 цифрах
             PinBox.PasswordChanged += (s, e) =>
             {
-                var pb = s as PasswordBox;
-                if (pb.Password.Length == 4) ConfirmPin_Click(null, null);
+                if (PinBox.Password.Length == 4)
+                    ConfirmPin_Click(null, null);
             };
         }
 
@@ -1244,7 +1308,7 @@ namespace RegIN.Pages
         {
             if (PinBox.Password.Length != 4 || !PinBox.Password.All(char.IsDigit))
             {
-                Info.Text = "PIN must be 4 digits!";
+                MessageBox.Show("PIN должен состоять из 4 цифр");
                 return;
             }
 
@@ -1252,18 +1316,18 @@ namespace RegIN.Pages
 
             if (_isRegistration)
             {
-                MessageBox.Show("Регистрация завершена! PIN-код установлен.");
-                // После регистрации и установки PIN возвращаемся на страницу входа
+                MessageBox.Show("Регистрация завершена. PIN установлен.");
                 MainWindow.mainWindow.OpenPage(new Login());
             }
             else
             {
-                MessageBox.Show("PIN изменен успешно!");
+                MessageBox.Show("PIN успешно изменён.");
                 MainWindow.mainWindow.OpenPage(new Login());
             }
         }
     }
 }
+
 
 
 
@@ -1507,6 +1571,7 @@ namespace RegIN.Pages
         private bool IsPasswordValid = false;
         private bool IsConfirmPasswordValid = false;
         private bool IsImageSelected = false;
+        private bool _alreadyWentToConfirmation = false;
         public Regin()
         {
             InitializeComponent();
@@ -1589,11 +1654,15 @@ namespace RegIN.Pages
 
         private void TryGoToConfirmation()
         {
+            if (_alreadyWentToConfirmation) return; // ← ВАЖНО: только один раз!
+
             if (IsLoginValid &&
                 IsPasswordValid &&
                 IsConfirmPasswordValid &&
                 !string.IsNullOrWhiteSpace(TbName.Text))
             {
+                _alreadyWentToConfirmation = true; // блокируем повторный переход
+
                 var user = MainWindow.mainWindow.UserLogIn;
                 user.Login = TbLogin.Text.Trim();
                 user.Password = TbPassword.Password;

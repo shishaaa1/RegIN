@@ -32,6 +32,7 @@ namespace RegIN.Pages
         private bool IsPasswordValid = false;
         private bool IsConfirmPasswordValid = false;
         private bool IsImageSelected = false;
+        private bool _alreadyWentToConfirmation = false;
         public Regin()
         {
             InitializeComponent();
@@ -114,11 +115,15 @@ namespace RegIN.Pages
 
         private void TryGoToConfirmation()
         {
+            if (_alreadyWentToConfirmation) return; // ← ВАЖНО: только один раз!
+
             if (IsLoginValid &&
                 IsPasswordValid &&
                 IsConfirmPasswordValid &&
                 !string.IsNullOrWhiteSpace(TbName.Text))
             {
+                _alreadyWentToConfirmation = true; // блокируем повторный переход
+
                 var user = MainWindow.mainWindow.UserLogIn;
                 user.Login = TbLogin.Text.Trim();
                 user.Password = TbPassword.Password;

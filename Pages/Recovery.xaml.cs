@@ -33,8 +33,14 @@ namespace RegIN.Pages
         public Recovery()
         {
             InitializeComponent();
+            // Сначала удаляем старую подписку (если она была), чтобы не дублировать
+            MainWindow.mainWindow.UserLogIn.OnCorrectLogin -= CorrectLogin;
+            MainWindow.mainWindow.UserLogIn.OnIncorrectLogin -= IncorrectLogin;
+
+            // Теперь подписываемся
             MainWindow.mainWindow.UserLogIn.OnCorrectLogin += CorrectLogin;
             MainWindow.mainWindow.UserLogIn.OnIncorrectLogin += IncorrectLogin;
+
             if (Capture != null)
                 Capture.HandlerCorrectCapture += CorrectCapture;
         }

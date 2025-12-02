@@ -74,28 +74,37 @@ namespace RegIN.Classes
 
         public void SetUser()
         {
+            var conn = WorkingDB.OpenConnection();
+            if (conn == null) return;
+
             try
             {
-                var conn = WorkingDB.OpenConnection();
-                if (conn == null) return;
-
-                using (var cmd = new MySqlCommand(@"INSERT INTO users 
-                (Login, Password, Name, Image, DateUpdate, DateCreate) 
-                VALUES (@Login, @Password, @Name, @Image, @DateUpdate, @DateCreate)", conn))
+                using (var cmd = new MySqlCommand(@"INSERT INTO users
+            (Login, Password, Name, Image, DateUpdate, DateCreate)
+            VALUES (@Login, @Password, @Name, @Image, NOW(), NOW())", conn))
                 {
                     cmd.Parameters.AddWithValue("@Login", Login);
                     cmd.Parameters.AddWithValue("@Password", Password);
                     cmd.Parameters.AddWithValue("@Name", Name);
                     cmd.Parameters.AddWithValue("@Image", Image ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@DateUpdate", DateTime.Now);
-                    cmd.Parameters.AddWithValue("@DateCreate", DateTime.Now);
                     cmd.ExecuteNonQuery();
                 }
 
-                WorkingDB.CloseConnection(conn);
+                // Успешно! Теперь можно очищать
+                Clear();
             }
-            catch (Exception ex) {
-                MessageBox.Show($"Ошибка регистрации {ex}");
+            catch (MySqlException ex) when (ex.Number == 1062) // 1062 = Duplicate entry
+            {
+                MessageBox.Show("Пользователь с таким email уже существует!", "Ошибка",
+                                MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка при регистрации: " + ex.Message);
+            }
+            finally
+            {
+                WorkingDB.CloseConnection(conn);
             }
         }
 
@@ -116,7 +125,12 @@ namespace RegIN.Classes
             if (string.IsNullOrEmpty(PinHash)) return false;
             return PinHash == pin; 
         }
+        public void Clear()
+        {
+            Id = 0;
+            Login = Password = Name = PinHash = string.Empty;
+            Image = null;
+        }
 
-        
     }
 }

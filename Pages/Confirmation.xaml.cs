@@ -27,87 +27,93 @@ namespace RegIN.Pages
             Regin
         }
         TypeConfirmation ThisTypeConfirmation;
-        public int Code = 0;
+        private int Code = 0;
         private Thread timerThread;
-        public Confirmation(TypeConfirmation TypeConfirmation)
+        private bool _isProcessing = false;
+        public Confirmation(TypeConfirmation type)
         {
             InitializeComponent();
-            ThisTypeConfirmation = TypeConfirmation;
+            ThisTypeConfirmation = type;  // ← правильное присваивание
             BSendMessage.IsEnabled = false;
-            SendMailCode();
+            SendMailCode(); // ← отправка сразу при открытии
         }
 
-        public void SendMailCode()
+        private void SendMailCode()
         {
             Code = new Random().Next(100000, 999999);
-            string recipient = MainWindow.mainWindow.UserLogIn.Login;
 
-            Classes.SendMail.SendMessage($"Login code: {Code}", recipient);
+            string recipient = MainWindow.mainWindow?.UserLogIn?.Login;
 
-            BSendMessage.IsEnabled = false;
+            if (string.IsNullOrWhiteSpace(recipient))
+            {
+                MessageBox.Show("Ошибка: email не найден!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            bool result = Classes.SendMail.SendMessage($"Ваш код подтверждения: {Code}", recipient);
+
+            if (!result)
+            {
+                MessageBox.Show("Ошибка отправки письма. Проверь лог.", "SMTP", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             LTimer.Content = "Повторная отправка через 60 секунд";
+            BSendMessage.IsEnabled = false;
 
-            timerThread = new Thread(TimerSendMailCode) { IsBackground = true };
+            timerThread?.Abort();
+            timerThread = new Thread(() =>
+            {
+                for (int i = 60; i > 0; i--)
+                {
+                    Dispatcher.Invoke(() => LTimer.Content = $"Повторная отправка через {i} сек");
+                    Thread.Sleep(1000);
+                }
+                Dispatcher.Invoke(() =>
+                {
+                    BSendMessage.IsEnabled = true;
+                    LTimer.Content = "Можно отправить код повторно";
+                });
+            })
+            { IsBackground = true };
+
             timerThread.Start();
         }
 
-        public void TimerSendMailCode()
-        {
-            for (int i = 60; i > 0; i--)
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    LTimer.Content = $"Повторная отправка через {i} сек";
-                });
-                Thread.Sleep(1000);
-            }
 
-            Dispatcher.Invoke(() =>
-            {
-                BSendMessage.IsEnabled = true;
-                LTimer.Content = "";
-            });
-        }
-
-        private void SendMail(object sender, RoutedEventArgs e)
-        {
-            BSendMessage.IsEnabled = false;
-            SendMailCode();
-        }
-
-        private void SetCode(object sender, KeyEventArgs e)
-        {
-            if (TbCode.Text.Length == 6)
-                SetCode();
-        }
+        private void SendMail(object sender, RoutedEventArgs e) => SendMailCode();
 
         private void SetCode(object sender, RoutedEventArgs e)
         {
-            SetCode();
-        }
+            if (TbCode.Text.Length != 6) return;
 
-        void SetCode()
-        {
             if (TbCode.Text == Code.ToString())
             {
                 TbCode.IsEnabled = false;
+                BSendMessage.IsEnabled = false;
 
                 if (ThisTypeConfirmation == TypeConfirmation.Login)
                 {
-                    MessageBox.Show($"Добро пожаловать, {MainWindow.mainWindow.UserLogIn.Name}");
+                    MessageBox.Show($"Добро пожаловать, {MainWindow.mainWindow.UserLogIn.Name}!");
                     MainWindow.mainWindow.OpenPage(new Login());
                 }
-                else
+                else // Regin
                 {
                     MainWindow.mainWindow.UserLogIn.SetUser();
+                    MainWindow.mainWindow.UserLogIn.Clear();
+                    MessageBox.Show("Регистрация завершена успешно!");
                     MainWindow.mainWindow.OpenPage(new PinSetup(true));
                 }
             }
             else
             {
-                MessageBox.Show("Неверный код");
+                MessageBox.Show("Неверный код", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                TbCode.Text = "";
+                TbCode.Focus();
             }
         }
+
+        private void SetCode(object sender, KeyEventArgs e) => SetCode(sender, (RoutedEventArgs)e);
 
         private void OpenLogin(object sender, MouseButtonEventArgs e)
         {
@@ -115,3 +121,4 @@ namespace RegIN.Pages
         }
     }
 }
+

@@ -50,7 +50,7 @@
                          Text=""
                          VerticalAlignment="Top"
                          KeyUp="SetCode"
-                         LostFocus="SetCode"
+                        LostFocus="SetCode"
                          />
                 <Label x:Name="LTimer"
                        Margin="10,213,10,0"
