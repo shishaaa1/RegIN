@@ -28,75 +28,90 @@ namespace RegIN.Pages
         }
         TypeConfirmation ThisTypeConfirmation;
         public int Code = 0;
+        private Thread timerThread;
         public Confirmation(TypeConfirmation TypeConfirmation)
         {
             InitializeComponent();
             ThisTypeConfirmation = TypeConfirmation;
+            BSendMessage.IsEnabled = false;
             SendMailCode();
         }
+
         public void SendMailCode()
         {
             Code = new Random().Next(100000, 999999);
-            Classes.SendMail.SendMessage($"Login code: {Code}", MainWindow.mainWindow.UserLogIn.Login);
-            Thread TSendMailCode = new Thread(TimerSendMailCode);
-            TSendMailCode.Start();
+            string recipient = MainWindow.mainWindow.UserLogIn.Login;
+
+            Classes.SendMail.SendMessage($"Login code: {Code}", recipient);
+
+            BSendMessage.IsEnabled = false;
+            LTimer.Content = "Повторная отправка через 60 секунд";
+
+            timerThread = new Thread(TimerSendMailCode) { IsBackground = true };
+            timerThread.Start();
         }
+
         public void TimerSendMailCode()
         {
-            for (int i = 0; i < 60; i++)
+            for (int i = 60; i > 0; i--)
             {
                 Dispatcher.Invoke(() =>
                 {
-                    LTimer.Content = $"A second message can be sent after {(60 - i)} seconds";
+                    LTimer.Content = $"Повторная отправка через {i} сек";
                 });
                 Thread.Sleep(1000);
             }
+
             Dispatcher.Invoke(() =>
             {
                 BSendMessage.IsEnabled = true;
                 LTimer.Content = "";
             });
         }
+
         private void SendMail(object sender, RoutedEventArgs e)
         {
+            BSendMessage.IsEnabled = false;
             SendMailCode();
         }
+
         private void SetCode(object sender, KeyEventArgs e)
         {
             if (TbCode.Text.Length == 6)
                 SetCode();
-
         }
-        private void SetCode(object sender, RoutedEventArgs e) =>
+
+        private void SetCode(object sender, RoutedEventArgs e)
+        {
             SetCode();
+        }
+
         void SetCode()
         {
-            if (TbCode.Text == Code.ToString() && TbCode.IsEnabled)
+            if (TbCode.Text == Code.ToString())
             {
                 TbCode.IsEnabled = false;
 
                 if (ThisTypeConfirmation == TypeConfirmation.Login)
                 {
-                    if (MainWindow.mainWindow.UserLogIn.PinHash == null)
-                    {
-                        MainWindow.mainWindow.OpenPage(new PinSetup());
-                    }
-                    else
-                    {
-                        MainWindow.mainWindow.OpenPage(new PinLogin(MainWindow.mainWindow.UserLogIn.Login));
-                    }
+                    MessageBox.Show($"Добро пожаловать, {MainWindow.mainWindow.UserLogIn.Name}");
+                    MainWindow.mainWindow.OpenPage(new Login());
                 }
                 else
                 {
                     MainWindow.mainWindow.UserLogIn.SetUser();
-                    MainWindow.mainWindow.OpenPage(new PinSetup());
+                    MainWindow.mainWindow.OpenPage(new PinSetup(true));
                 }
             }
+            else
+            {
+                MessageBox.Show("Неверный код");
+            }
         }
+
         private void OpenLogin(object sender, MouseButtonEventArgs e)
         {
             MainWindow.mainWindow.OpenPage(new Login());
         }
-
     }
 }

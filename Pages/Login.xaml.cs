@@ -32,49 +32,46 @@ namespace RegIN.Pages
         public Login()
         {
             InitializeComponent();
-            MainWindow.mainWindow.UserLogIn.OnCorrectLogin+= CorrectLogin;
+            MainWindow.mainWindow.UserLogIn.OnCorrectLogin += CorrectLogin;
             MainWindow.mainWindow.UserLogIn.OnIncorrectLogin += InCorrectLogin;
-            Capture.HandlerCorrectCapture += CorrectCapture;
+            if (Capture != null)
+                Capture.HandlerCorrectCapture += CorrectCapture;
         }
+        
         public void CorrectLogin()
         {
-            if (OldLogin != TbLogin.Text)
+            if (OldLogin == TbLogin.Text) return;
+
+            var name = MainWindow.mainWindow.UserLogIn?.Name;
+            SetNotification(name != null ? "Hi " + name : "Hi", System.Windows.Media.Brushes.Black);
+
+            try
             {
-                SetNotification("Hi" + MainWindow.mainWindow.UserLogIn.Name, Brushes.Black);
-                try
+                if (MainWindow.mainWindow.UserLogIn?.Image != null)
                 {
                     BitmapImage biImg = new BitmapImage();
                     MemoryStream ms = new MemoryStream(MainWindow.mainWindow.UserLogIn.Image);
                     biImg.BeginInit();
-                    biImg.StreamSource=ms;
+                    biImg.StreamSource = ms;
+                    biImg.CacheOption = BitmapCacheOption.OnLoad;
                     biImg.EndInit();
-                    ImageSource imgSrc = biImg;
-                    DoubleAnimation StartAnimation = new DoubleAnimation();
-                    StartAnimation.From = 1;
-                    StartAnimation.To = 0;
-                    StartAnimation.Duration = TimeSpan.FromSeconds(0.6);
-                    StartAnimation.Completed += delegate
-                    {
-                        IUser.Source = imgSrc;
-                        DoubleAnimation EndAnimation = new DoubleAnimation();
-                        EndAnimation.From = 0;
-                        EndAnimation.To = 1;
-                        EndAnimation.Duration = TimeSpan.FromSeconds(1.2);
-                        IUser.BeginAnimation(Image.OpacityProperty, EndAnimation);
-                    };
-                    IUser.BeginAnimation(Image.OpacityProperty, StartAnimation);
+                    IUser.Source = biImg;
                 }
-                catch(Exception exp)
+                else
                 {
-
-                    Debug.WriteLine(exp.Message);
-                };
-                OldLogin = TbLogin.Text;    
+                    IUser.Source = new BitmapImage(new Uri("pack://application:,,,/Images/ic_user.png"));
+                }
             }
+            catch (Exception exp)
+            {
+                Debug.WriteLine(exp.Message);
+            }
+
+            OldLogin = TbLogin.Text;
         }
         public void InCorrectLogin()
         {
-            if (LNameUser.Content != "")
+            if (!string.IsNullOrEmpty(LNameUser.Content?.ToString()))
             {
                 LNameUser.Content = "";
                 DoubleAnimation StartAnimation = new DoubleAnimation();
@@ -94,12 +91,12 @@ namespace RegIN.Pages
             }
             if (TbLogin.Text.Length > 0)
             {
-                SetNotification("Login is incorrect", Brushes.Red);
+                SetNotification("Login is incorrect", System.Windows.Media.Brushes.Red);
             }
         }
         public void CorrectCapture()
         {
-            Capture.IsEnabled = false;
+            if (Capture != null) Capture.IsEnabled = false;
             IsCapture = true;
         }
         private void SetLogin(object sender, KeyEventArgs e)
@@ -118,45 +115,48 @@ namespace RegIN.Pages
             if (TbPassword.Password.Length > 0)
                 SetPassword();
         }
-        public void SetNotification(string Message, SolidColorBrush _Color)
+        public void SetNotification(string Message, System.Windows.Media.SolidColorBrush _Color)
         {
-            LNameUser.Content=Message;
+            LNameUser.Content = Message;
             LNameUser.Foreground = _Color;
         }
         private void SetPassword(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
                 SetPassword();
-
         }
         public void SetPassword()
         {
-            if (MainWindow.mainWindow.UserLogIn.Password != String.Empty)
+            if (string.IsNullOrEmpty(MainWindow.mainWindow.UserLogIn?.Password))
             {
-                if (IsCapture)
+                SetNotification("User has no password set", System.Windows.Media.Brushes.Red);
+                return;
+            }
+
+            if (IsCapture)
+            {
+                if (MainWindow.mainWindow.UserLogIn.Password == TbPassword.Password)
                 {
-                    if (MainWindow.mainWindow.UserLogIn.Password == TbPassword.Password)
+                    // Переходим на выбор метода входа (pin или mail)
+                    MainWindow.mainWindow.OpenPage(new ChoiceLogin(TbLogin.Text));
+                }
+                else
+                {
+                    if (CountSetPassword > 0)
                     {
-                        MainWindow.mainWindow.OpenPage(new Confirmation(Confirmation.TypeConfirmation.Login));
+                        SetNotification($"Password is incorrect, {CountSetPassword} attempts left", System.Windows.Media.Brushes.Red);
+                        CountSetPassword--;
                     }
                     else
                     {
-                        if (CountSetPassword > 0)
-                        {
-                            SetNotification($"Password is incorrect,{CountSetPassword} attempts left", Brushes.Red);
-                            CountSetPassword--;
-                        }
-                        else
-                        {
-                            Thread TBlockAuthorization = new Thread(BlockAuthorization);
-                            TBlockAuthorization.Start();
-                            SendMail.SendMessage("An attempt was made to log into your account.", MainWindow.mainWindow.UserLogIn.Login);
-                        }
+                        Thread TBlockAuthorization = new Thread(BlockAuthorization) { IsBackground = true };
+                        TBlockAuthorization.Start();
+                        Classes.SendMail.SendMessage("An attempt was made to log into your account.", MainWindow.mainWindow.UserLogIn.Login);
                     }
                 }
-                else
-                    SetNotification($"Enter capture", Brushes.Red);
             }
+            else
+                SetNotification($"Enter capture", System.Windows.Media.Brushes.Red);
         }
         public void BlockAuthorization()
         {
@@ -165,34 +165,32 @@ namespace RegIN.Pages
             {
                 TbLogin.IsEnabled = false;
                 TbPassword.IsEnabled = false;
-                Capture.IsEnabled = false;
+                if (Capture != null) Capture.IsEnabled = false;
             });
             for (int i = 0; i < 180; i++)
             {
                 TimeSpan TimeIdle = StartBlock.Subtract(DateTime.Now);
-                string s_minutes = TimeIdle.Minutes.ToString();
-                if (TimeIdle.Minutes < 10)
-                    s_minutes = "0" + TimeIdle.Minutes;
-                string s_seconds = TimeIdle.Seconds.ToString();
-                if (TimeIdle.Seconds < 10)
-                    s_seconds = "0" + TimeIdle.Seconds;
+                string s_minutes = TimeIdle.Minutes.ToString("D2");
+                string s_seconds = TimeIdle.Seconds.ToString("D2");
                 Dispatcher.Invoke(() =>
                 {
-                    SetNotification($"Reauthorization available in:{s_minutes}:{s_seconds}", Brushes.Red);
+                    SetNotification($"Reauthorization available in: {s_minutes}:{s_seconds}", System.Windows.Media.Brushes.Red);
                 });
                 Thread.Sleep(1000);
             }
             Dispatcher.Invoke(() =>
             {
-                SetNotification("Hi " + MainWindow.mainWindow.UserLogIn.Name, Brushes.Black);
+                SetNotification("Hi " + MainWindow.mainWindow.UserLogIn?.Name, System.Windows.Media.Brushes.Black);
                 TbLogin.IsEnabled = true;
                 TbPassword.IsEnabled = true;
-                Capture.IsEnabled = true;
-                Capture.CreateCapture();
+                if (Capture != null)
+                {
+                    Capture.CreateCapture();
+                    Capture.IsEnabled = true;
+                }
                 IsCapture = false;
                 CountSetPassword = 2;
-            }
-            );
+            });
         }
         private void RecoveryPassword(object sender, MouseButtonEventArgs e)
         {

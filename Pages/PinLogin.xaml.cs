@@ -25,16 +25,25 @@ namespace RegIN.Pages
         {
             InitializeComponent();
             lastLogin = login;
-            MainWindow.mainWindow.UserLogIn.GetUserByLogin(login);
+
+            // Подгружаем пользователя, если нужно
+            if (MainWindow.mainWindow.UserLogIn == null || MainWindow.mainWindow.UserLogIn.Login != login)
+            {
+                MainWindow.mainWindow.UserLogIn.GetUserByLogin(login);
+            }
+
+            // тут можно обновить UI, если нужно
             MainWindow.mainWindow.UserLogIn.OnCorrectLogin += () =>
             {
-                if (MainWindow.mainWindow.UserLogIn.PinHash != null)
-                    this.Dispatcher.Invoke(() => {  });
+                // Если PIN есть — можно показать UI элементы (если нужно)
             };
         }
 
         private void Login_Click(object sender, RoutedEventArgs e)
         {
+            if (PinBox == null)
+                return;
+
             if (PinBox.Password.Length != 4)
             {
                 ErrorText.Text = "Enter 4 digits";
@@ -44,7 +53,8 @@ namespace RegIN.Pages
             if (MainWindow.mainWindow.UserLogIn.VerifyPin(PinBox.Password))
             {
                 MessageBox.Show($"Welcome, {MainWindow.mainWindow.UserLogIn.Name}!");
-               
+                // Тут можно перейти на главную страницу приложения:
+                MainWindow.mainWindow.OpenPage(new Login());
             }
             else
             {
@@ -59,3 +69,4 @@ namespace RegIN.Pages
         }
     }
 }
+

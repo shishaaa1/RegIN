@@ -1,6 +1,6 @@
-﻿PROJECT EXPORT - 12/02/2025 16:04:16
+﻿PROJECT EXPORT - 12/02/2025 16:33:07
 Project Path: C:\Users\student-a502.PERMAVIAT\Desktop\RegIN
-Total Files: 20
+Total Files: 21
 
 ================================================================================
 FILE: App.config
@@ -277,6 +277,10 @@ FILE: RegIN.csproj
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Pages\ChoiceLogin.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\Confirmation.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -303,6 +307,9 @@ FILE: RegIN.csproj
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Pages\ChoiceLogin.xaml.cs">
+      <DependentUpon>ChoiceLogin.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\Confirmation.xaml.cs">
       <DependentUpon>Confirmation.xaml</DependentUpon>
     </Compile>
@@ -422,6 +429,7 @@ FILE: Classes\SendMail.cs
 ================================================================================
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -432,16 +440,25 @@ namespace RegIN.Classes
 {
     public class SendMail
     {
-        public static void SendMessage(string Message, string To)
+        public static bool SendMessage(string message, string to, string subject = "Проект RegIn")
         {
-            var smtpClient = new SmtpClient("smtp.yandex.ru")
+            try
             {
-                Port = 587,
-                Credentials = new NetworkCredential("gaschevdanil@yandex.ru", "fodhwxmjrpxnwakx"),
-                EnableSsl = true,
-            };
-            
-            smtpClient.Send("gaschevdanil@yandex.ru", To, "Проект RegIn", Message);
+                var smtpClient = new SmtpClient("smtp.yandex.ru")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential("gaschevdanil@yandex.ru", "fodhwxmjrpxnwakx"),
+                    EnableSsl = true,
+                };
+
+                smtpClient.Send("gaschevdanil@yandex.ru", to, subject, message);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка отправки письма: {ex.Message}");
+                return false;
+            }
         }
     }
 }
@@ -547,36 +564,23 @@ namespace RegIN.Classes
 
         public void UpdatePin(string pin)
         {
-            PinHash = HashPin(pin);
-
+            PinHash = pin;  // Убрано хэширование
             var conn = WorkingDB.OpenConnection();
             if (conn == null) return;
-
-            using (var cmd = new MySqlCommand("UPDATE users SET PinHash = @pin WHERE Id = @id", conn))
-            {
-                cmd.Parameters.AddWithValue("@pin", PinHash);
-                cmd.Parameters.AddWithValue("@id", Id);
-                cmd.ExecuteNonQuery();
-            }
-
+            var cmd = new MySqlCommand("UPDATE users SET PinHash = @pin WHERE Id = @id", conn);
+            cmd.Parameters.AddWithValue("@pin", PinHash);
+            cmd.Parameters.AddWithValue("@id", Id);
+            cmd.ExecuteNonQuery();
             WorkingDB.CloseConnection(conn);
         }
 
         public bool VerifyPin(string pin)
         {
             if (string.IsNullOrEmpty(PinHash)) return false;
-            return PinHash == HashPin(pin);
+            return PinHash == pin; 
         }
 
-        private string HashPin(string pin)
-        {
-            using (var sha256 = SHA256.Create())
-            {
-                var bytes = Encoding.UTF8.GetBytes(pin + "RegINSalt2025");
-                var hash = sha256.ComputeHash(bytes);
-                return Convert.ToBase64String(hash);
-            }
-        }
+        
     }
 }
 
@@ -750,6 +754,66 @@ namespace RegIN.Elements
 
 
 ================================================================================
+FILE: Pages\ChoiceLogin.xaml.cs
+================================================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+namespace RegIN.Pages
+{
+    /// <summary>
+    /// Логика взаимодействия для ChoiceLogin.xaml
+    /// </summary>
+    public partial class ChoiceLogin : Page
+    {
+        private string _login;
+        public ChoiceLogin(string login)
+        {
+            InitializeComponent();
+            _login = login;
+
+            // Загружаем пользователя для проверки наличия PIN
+            MainWindow.mainWindow.UserLogIn.GetUserByLogin(login);
+
+            // Если PIN не установлен, показываем только кнопку с почтой
+            if (string.IsNullOrEmpty(MainWindow.mainWindow.UserLogIn.PinHash))
+            {
+                BtnPin.Visibility = Visibility.Collapsed;
+            }
+        }
+        private void BtnPin_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.mainWindow.OpenPage(new PinLogin(_login));
+        }
+
+        private void BtnMail_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.mainWindow.OpenPage(new Confirmation(Confirmation.TypeConfirmation.Login));
+        }
+
+        private void BtnBack_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.mainWindow.OpenPage(new Login());
+        }
+    }
+}
+
+
+
+
+================================================================================
 FILE: Pages\Confirmation.xaml.cs
 ================================================================================
 using System;
@@ -831,19 +895,13 @@ namespace RegIN.Pages
 
                 if (ThisTypeConfirmation == TypeConfirmation.Login)
                 {
-                    if (MainWindow.mainWindow.UserLogIn.PinHash == null)
-                    {
-                        MainWindow.mainWindow.OpenPage(new PinSetup());
-                    }
-                    else
-                    {
-                        MainWindow.mainWindow.OpenPage(new PinLogin(MainWindow.mainWindow.UserLogIn.Login));
-                    }
+                    MessageBox.Show($"Добро пожаловать, {MainWindow.mainWindow.UserLogIn.Name}!");
+                    MainWindow.mainWindow.OpenPage(new Login()); 
                 }
-                else
+                else // Regin
                 {
                     MainWindow.mainWindow.UserLogIn.SetUser();
-                    MainWindow.mainWindow.OpenPage(new PinSetup());
+                    MainWindow.mainWindow.OpenPage(new PinSetup(true)); // true - это регистрация
                 }
             }
         }
@@ -999,7 +1057,8 @@ namespace RegIN.Pages
                 {
                     if (MainWindow.mainWindow.UserLogIn.Password == TbPassword.Password)
                     {
-                        MainWindow.mainWindow.OpenPage(new Confirmation(Confirmation.TypeConfirmation.Login));
+                        // Вместо перехода на Confirmation сразу, переходим на выбор метода входа
+                        MainWindow.mainWindow.OpenPage(new ChoiceLogin(TbLogin.Text));
                     }
                     else
                     {
@@ -1046,7 +1105,7 @@ namespace RegIN.Pages
             }
             Dispatcher.Invoke(() =>
             {
-                SetNotification("Hi" + MainWindow.mainWindow.UserLogIn.Name, Brushes.Black);
+                SetNotification("Hi " + MainWindow.mainWindow.UserLogIn.Name, Brushes.Black);
                 TbLogin.IsEnabled = true;
                 TbPassword.IsEnabled = true;
                 Capture.IsEnabled = true;
@@ -1162,9 +1221,18 @@ namespace RegIN.Pages
     /// </summary>
     public partial class PinSetup : Page
     {
+        private bool _isRegistration;
         public PinSetup()
         {
             InitializeComponent();
+            _isRegistration = isRegistration;
+
+            if (_isRegistration)
+            {
+                TitleText.Text = "Установите PIN-код для входа";
+                Info.Text = "PIN-код будет использоваться для быстрого входа";
+            }
+
             PinBox.PasswordChanged += (s, e) =>
             {
                 var pb = s as PasswordBox;
@@ -1181,8 +1249,18 @@ namespace RegIN.Pages
             }
 
             MainWindow.mainWindow.UserLogIn.UpdatePin(PinBox.Password);
-            MessageBox.Show("PIN set successfully! You can now log in with it.");
-            MainWindow.mainWindow.OpenPage(new Login());
+
+            if (_isRegistration)
+            {
+                MessageBox.Show("Регистрация завершена! PIN-код установлен.");
+                // После регистрации и установки PIN возвращаемся на страницу входа
+                MainWindow.mainWindow.OpenPage(new Login());
+            }
+            else
+            {
+                MessageBox.Show("PIN изменен успешно!");
+                MainWindow.mainWindow.OpenPage(new Login());
+            }
         }
     }
 }
@@ -1323,13 +1401,7 @@ namespace RegIN.Pages
 
         private string HashPassword(string password)
         {
-            // Используем тот же алгоритм хэширования, что и при регистрации
-            using (var sha256 = SHA256.Create())
-            {
-                byte[] bytes = Encoding.UTF8.GetBytes(password + "RegINSalt2025");
-                byte[] hash = sha256.ComputeHash(bytes);
-                return Convert.ToBase64String(hash);
-            }
+            return password;  
         }
 
         private void SaveNewPasswordToDatabase(string hashedPassword)
@@ -1377,8 +1449,6 @@ namespace RegIN.Pages
             LNameUser.Content = text;
             LNameUser.Foreground = color;
         }
-
-        // Метод для повторной отправки (если нужно)
         public void ResendPassword()
         {
             if (string.IsNullOrEmpty(_generatedPassword))

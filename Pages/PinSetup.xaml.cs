@@ -20,13 +20,22 @@ namespace RegIN.Pages
     /// </summary>
     public partial class PinSetup : Page
     {
-        public PinSetup()
+        private bool _isRegistration;
+
+        public PinSetup() : this(false)
+        {
+        }
+
+        public PinSetup(bool isRegistration = false)
         {
             InitializeComponent();
+            _isRegistration = isRegistration;
+
+            // авто-подтверждение при 4 цифрах
             PinBox.PasswordChanged += (s, e) =>
             {
-                var pb = s as PasswordBox;
-                if (pb.Password.Length == 4) ConfirmPin_Click(null, null);
+                if (PinBox.Password.Length == 4)
+                    ConfirmPin_Click(null, null);
             };
         }
 
@@ -34,13 +43,23 @@ namespace RegIN.Pages
         {
             if (PinBox.Password.Length != 4 || !PinBox.Password.All(char.IsDigit))
             {
-                Info.Text = "PIN must be 4 digits!";
+                MessageBox.Show("PIN должен состоять из 4 цифр");
                 return;
             }
 
             MainWindow.mainWindow.UserLogIn.UpdatePin(PinBox.Password);
-            MessageBox.Show("PIN set successfully! You can now log in with it.");
-            MainWindow.mainWindow.OpenPage(new Login());
+
+            if (_isRegistration)
+            {
+                MessageBox.Show("Регистрация завершена. PIN установлен.");
+                MainWindow.mainWindow.OpenPage(new Login());
+            }
+            else
+            {
+                MessageBox.Show("PIN успешно изменён.");
+                MainWindow.mainWindow.OpenPage(new Login());
+            }
         }
     }
 }
+
